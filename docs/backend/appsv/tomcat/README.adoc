@@ -8,11 +8,29 @@ https://hub.docker.com/_/tomcat
 
 [source,shell]
 ----
+mkdir webapps
+
 docker run \
   -it \
   --rm \
   -p 8888:8080 \
+  -v "$PWD/webapps":/usr/local/tomcat/webapps \
   tomcat:9.0
 ----
 
 http://localhost:8888
+
+== Deploy
+
+=== サンプルアプリのデプロイ
+
+サンプルアプリをデプロイする。
+
+https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/
+
+[source,shell]
+----
+curl -L -o webapps/sample.war https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war
+----
+
+http://localhost:8888/sample
