@@ -6,6 +6,14 @@ https://tomcat.apache.org/
 
 https://hub.docker.com/_/tomcat
 
+----
+CATALINA_BASE:   /usr/local/tomcat
+CATALINA_HOME:   /usr/local/tomcat
+CATALINA_TMPDIR: /usr/local/tomcat/temp
+JRE_HOME:        /usr
+CLASSPATH:       /usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar
+----
+
 [source,shell]
 ----
 mkdir webapps
@@ -20,9 +28,140 @@ docker run \
 
 http://localhost:8888
 
+== アプリ開発
+
+=== 基盤となる技術
+
+参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/introduction.html[Application Developer's Guide - Introduction]
+
+* https://jcp.org/aboutJava/communityprocess/mrel/jsr245/index2.html[JavaServer Pages]
+** html 内に Java の処理を埋め込む。
+** MVC の View 向け
+** フロントエンドとバックエンドを切り分けた場合は、基本使われないか？
+* https://jcp.org/aboutJava/communityprocess/final/jsr369/index.html[Java Servlet]
+** HTTP リクエストを処理する Java プログラム
+** MVC の Controller 向け。なお、JavaBeans 仕様に従った Java クラスが Model 相当となる。
+
+=== 利用するソフトウェア
+
+参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/installation.html[Application Developer's Guide - Installation]
+
+* JDK
+** Java SE 8 or later
+* https://ant.apache.org/[Ant]
+** Ant 1.8 or later
+** ビルドツール
+** 個人的な好みの都合により、ここでは代わりに https://maven.apache.org/[Apache Maven] を利用する。
+なお、https://tomcat.apache.org/maven-plugin.html[Maven Plugin] は使わずに WAR の開発は独立して行い、
+配布された WAR を手動でデプロイする想定。
+
+ここでは、 JDK / Maven がセットになった https://hub.docker.com/_/maven[maven の Docker イメージ] を使うものとする。
+
+[source,shell]
+----
+# リポジトリ共有
+docker volume create --name maven-repo
+
+docker run \
+  --rm \
+  -v maven-repo:/root/.m2 \
+  maven:3-openjdk-11 \
+    mvn --version
+
+# ホーム利用
+docker run \
+  --rm \
+  -v "$HOME/.m2":/root/.m2 \
+  -w /usr/src/mymaven \
+  maven:3-openjdk-11 \
+    mvn --version
+----
+
+
+=== 生産物
+
+参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/deployment.html[Application Developer's Guide - Deployment]
+
+* 標準レイアウトの構成をした未圧縮のディレクトリ／ファイル群か、それらを圧縮した Web ARchive(WAR) が生産物となる。アプリを配布する場合は基本 WAR 形式となる。
+* 最上位ディレクトリがアプリのドキュメントルートとなる。
+
+標準レイアウトは以下で構成される。
+
+* `*.html, *.jsp, etc.` : クライアントのブラウザ上で表示するファイル群（ JavaScript / stylesheet / images なども含む）。
+大規模構成の場合はサブディレクトリ構成も可能だが、小規模の場合は１つのディレクトリにまとめる方が簡単。
+* `/WEB-INF/web.xml` : Web アプリケーションデプロイメント記述子。アプリの構成や各種パラメーターなどを記述した XML ファイル。
+* `/WEB-INF/classes/` : アプリが必要とする Java クラス（および関連リソース）ファイル群（JAR に圧縮されていない状態のもの）。パッケージ構成とディレクトリ構成は等しくする必要がある。
+* `/WEB-INF/lib/` : アプリが必要とする Java クラス（および関連リソース）の JAR ファイル群。
+
+その他、 `$CATALINA_HOME/lib` 配下に置いた JAR は tomcat 全体で参照可能。
+
+Web アプリケーションデプロイメント記述子ファイル `/WEB-INF/web.xml` については別途説明。
+Tomcat Context Descriptor `/META-INF/context.xml` については別途説明。
+
+=== ソース
+
+参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/source.html[Application Developer's Guide - Source Organization]
+
+以下のディレクトリ構成となる。（ Ant のようなビルドツールを使うと大体このような構成となる）
+
+* `docs/` : アプリのドキュメント類
+* `src/` : Java ソースファイル。パッケージ構成とディレクトリ構成を一致させる。
+* `web/` : 
+* `web/WEB-INF/`
+
+ビルド時には以下のディレクトリが作成される。
+
+* `build/`
+* `dist/`
+
+https://maven.apache.org/archetypes/maven-archetype-webapp/[Maven Webapp Archetype] を使って構築すると、若干異なる構成になる。
+
+* `src/main/java/` : `src/` 相当（自分で作成する）
+* `src/main/webapp/` : `web/` 相当
+* `target/` : `build/` 相当
+
+[source,shell]
+----
+# コンテナ内は root 、ホスト側は任意ユーザを利用する想定で
+# root のリポジトリを利用しつつホスト側で利便性に応じて権限調整
+docker run \
+  --rm \
+  -v maven-repo:/root/.m2 \
+  -v "$PWD":/usr/src/mymaven \
+  -w /usr/src/mymaven \
+  maven:3-openjdk-11 \
+    mvn archetype:generate \
+      -DarchetypeGroupId=org.apache.maven.archetypes \
+      -DarchetypeArtifactId=maven-archetype-webapp \
+      -DarchetypeVersion=1.4 \
+      -DinteractiveMode=false \
+      -DgroupId=pkg1 \
+      -DartifactId=app01
+
+sudo chown -R 1000:1000 app01
+mkdir -p app01/src/main/java/
+----
+
+[source,shell]
+----
+cd app01
+
+docker run \
+  --rm \
+  -v maven-repo:/root/.m2 \
+  -v "$PWD":/usr/src/mymaven \
+  -w /usr/src/mymaven \
+  maven:3-openjdk-11 \
+    mvn package
+----
+
 == Deploy
 
-=== サンプルアプリのデプロイ
+参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/deployment.html[Application Developer's Guide - Deployment]
+
+`$CATALINA_BASE/webapps/` 配下に格納するか、 Tomcat のマネージャーを利用する。
+
+=== デプロイ例
 
 サンプルアプリをデプロイする。
 
@@ -34,3 +173,12 @@ curl -L -o webapps/sample.war https://tomcat.apache.org/tomcat-9.0-doc/appdev/sa
 ----
 
 http://localhost:8888/sample
+
+任意の自作アプリをデプロイする。
+
+[source,shell]
+----
+cp app01/target/app01.war ./webapps/
+----
+
+http://localhost:8888/app01
