@@ -1,0 +1,16 @@
+= Payara
+
+https://www.payara.fish/
+
+== Payara Platform Community Edition
+
+https://docs.payara.fish/community/docs/README.html
+
+== Docker
+
+https://hub.docker.com/u/payara
+
+* Payara Server
+** https://hub.docker.com/r/payara/server-full[Full Profile]
+** https://hub.docker.com/r/payara/server-web[Web Profile]
+* https://hub.docker.com/r/payara/micro[Payara Micro]
