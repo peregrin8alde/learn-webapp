@@ -1,0 +1,9 @@
+= Eclipse GlassFish
+
+https://glassfish.org/
+
+== Docker
+
+https://hub.docker.com/_/glassfish
+
+最新（２０２２年１月現在）が 5 年前、バージョンも 4.1 であり、古すぎるため利用しない。
