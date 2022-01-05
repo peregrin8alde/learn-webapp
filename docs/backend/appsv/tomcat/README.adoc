@@ -52,7 +52,7 @@ http://localhost:8888
 ** Ant 1.8 or later
 ** ビルドツール
 ** 個人的な好みの都合により、ここでは代わりに https://maven.apache.org/[Apache Maven] を利用する。
-なお、https://tomcat.apache.org/maven-plugin.html[Maven Plugin] は使わずに WAR の開発は独立して行い、
+なお、 https://tomcat.apache.org/maven-plugin.html[Maven Plugin] は使わずに WAR の開発は独立して行い、
 配布された WAR を手動でデプロイする想定。
 
 ここでは、 JDK / Maven がセットになった https://hub.docker.com/_/maven[maven の Docker イメージ] を使うものとする。
