@@ -13,4 +13,8 @@ https://hub.docker.com/u/payara
 * Payara Server
 ** https://hub.docker.com/r/payara/server-full[Full Profile]
 ** https://hub.docker.com/r/payara/server-web[Web Profile]
+*** Web Profile とは、最新の（モダンな） Web アプリケーション開発者向けの機能セット。
+詳細については https://jakarta.ee/specifications/webprofile/8/webprofile-spec-8.html[Jakarta EE WebProfile]
 * https://hub.docker.com/r/payara/micro[Payara Micro]
+
+ここでは主に Web Profile や Micro を利用する。

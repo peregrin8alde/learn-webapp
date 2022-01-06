@@ -10,7 +10,7 @@ Java 以外は Web サーバーやアプリそのもの、開発用フレーム�
     - Jakarta EE の一部実装でしかないため、 REST API などはオプションモジュールを使う必要がある。そのため、ここでは軽くしか触れないものとする。
     - Apache TomEE という実装範囲を広げたものもある。
   - [Eclipse GlassFish](https://glassfish.org/)
-    - Jakarta EE と互換性のある実装
+    - Jakarta EE と互換性のある実装（参照実装として他の見本となる）
   - [Payara](https://www.payara.fish/)
     - Jakarta EE と互換性のある実装
     - クラウドネイティブを謳っており、公式から AWS などのクラウド連携やマイクロサービス、 Docker イメージなどに関する情報を得ることができる。
