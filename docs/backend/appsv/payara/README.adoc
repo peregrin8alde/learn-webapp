@@ -19,6 +19,8 @@ https://hub.docker.com/u/payara
 
 ここでは主に Web Profile や Micro を利用する。
 
+https://docs.payara.fish/community/docs/documentation/ecosystem/docker-images/server-image-overview.html
+
 [source,shell]
 ----
 mkdir webapps
@@ -27,8 +29,19 @@ docker run \
   -it \
   --rm \
   -p 8080:8080 \
+  -p 8181:8181 \
+  -p 4848:4848 \
+  -p 9009:9009 \
   -v "$PWD/webapps":/opt/payara/deployments \
   payara/server-web
 ----
 
 http://localhost:8080
+
+ポートの意味は以下
+
+* 8080 - HTTP listener
+* 8181 - HTTPS listener
+* 4848 - Admin Service HTTPS listener
+** admin / admin
+* 9009 - JWDP Debug port
