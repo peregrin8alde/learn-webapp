@@ -18,3 +18,17 @@ https://hub.docker.com/u/payara
 * https://hub.docker.com/r/payara/micro[Payara Micro]
 
 ここでは主に Web Profile や Micro を利用する。
+
+[source,shell]
+----
+mkdir webapps
+
+docker run \
+  -it \
+  --rm \
+  -p 8080:8080 \
+  -v "$PWD/webapps":/opt/payara/deployments \
+  payara/server-web
+----
+
+http://localhost:8080
