@@ -1,0 +1,10 @@
+= フロントエンド関連技術
+
+* html
+** ここでは https://html.spec.whatwg.org/multipage/[HTML Living Standard] を指すものとする。
+* css
+* javascript
+* Web サーバ
+* 開発フレームワーク
+*** https://v3.ja.vuejs.org/[Vue.js]
+* テストフレームワーク
