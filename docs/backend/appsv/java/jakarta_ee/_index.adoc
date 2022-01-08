@@ -1,0 +1,27 @@
+= Jakarta EE
+
+https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html
+
+[quote, Jakarta EE Platform 9 Specification Document, 'https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a45[Figure 1. Jakarta EE Architecture Diagram]']
+____
+image::jakarta-arch.svg[Jakarta EE Architecture Diagram]
+____
+
+以下のコンポーネントが存在し、それぞれ用のコンテナ上で動作する。
+
+* Application Client Container
+** Application Client : 主にデスクトップマシン上で動作する GUI など。通常のクライアントアプリと比べて、 Jakarta EE のサーバへの接続性を持つ。
+* Applet Container
+** Applet : 主に Web ブラウザ上で動作する GUI など。 Web ブラウザ以外でもアプレット対応しているものなら動作可能。
+ただ、アプレットはブラウザだと非推奨になってきてる？
+* Web Container
+** Server Pages : https://jakarta.ee/specifications/pages/[Jakarta Server Pages(JSP)]
+*** html 内に Java の処理を埋め込む。
+*** MVC の View 向け
+*** フロントエンドとバックエンドを切り分けた場合は、基本使われないか？
+** Servlet : https://jakarta.ee/specifications/servlet/[Jakarta Servlet]
+*** HTTP リクエストを処理する Java プログラム
+*** MVC の Controller 向け
+* Enterprise Beans Container
+** Enterprise Beans
+*** MVC の Model 向け

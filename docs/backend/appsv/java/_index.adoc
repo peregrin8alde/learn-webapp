@@ -3,13 +3,7 @@
 アプリケーションサーバの標準規格として、 https://jakarta.ee/[Jakarta EE] （旧 Java EE ）がある。
 どんなツールを使うかは、この規格のどの範囲の機能を必要とするかによって変わってくる。
 
-https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html
-
-[quote, Jakarta EE Platform 9 Specification Document, 'https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a45[Figure 1. Jakarta EE Architecture Diagram]']
-____
-image::jakarta-arch.svg[Jakarta EE Architecture Diagram]
-____
-
+== アプリケーションサーバ
 
 * https://tomcat.apache.org/[Apache Tomcat]
 ** Jakarta EE の一部実装でしかないため、 REST API などはオプションモジュールを使う必要がある。そのため、ここでは軽くしか触れないものとする。
