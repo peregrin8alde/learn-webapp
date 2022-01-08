@@ -1,6 +1,12 @@
 = Jakarta EE
 
-https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html
+* https://jakarta.ee/
+* https://jakarta.ee/specifications/
+
+Jakarta EE 9 でパッケージ名が javax から jakarata に変更されるという大きな仕様変更があったため、
+ここでは Jakarta EE 9 をベースとする。
+
+* https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html
 
 [quote, Jakarta EE Platform 9 Specification Document, 'https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a45[Figure 1. Jakarta EE Architecture Diagram]']
 ____
