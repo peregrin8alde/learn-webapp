@@ -8,6 +8,7 @@
 * https://tomcat.apache.org/[Apache Tomcat]
 ** Jakarta EE の一部実装でしかないため、 REST API などはオプションモジュールを使う必要がある。そのため、ここでは軽くしか触れないものとする。
 *** Web コンテナやサーブレットコンテナと呼ばれる範囲の機能。 `.war` ファイルを扱う。
+*** なお、 Jakarta EE のドキュメントを見る限り、 Web コンテナ自体は REST API 機能も含めてるように見える。
 ** Apache TomEE という実装範囲を広げたものもある。
 * https://glassfish.org/[Eclipse GlassFish]
 ** Jakarta EE と互換性のある実装（参照実装として他の見本となる）
