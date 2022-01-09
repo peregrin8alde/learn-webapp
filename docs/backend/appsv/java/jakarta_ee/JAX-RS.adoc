@@ -1,0 +1,122 @@
+= Jakarta RESTful Web Services
+
+* https://jakarta.ee/specifications/restful-ws/3.0/[仕様]
+* https://jakarta.ee/specifications/restful-ws/3.0/apidocs/[Javadoc]
+
+== 実装
+
+https://eclipse-ee4j.github.io/jersey/download.html[Eclipse Jersey]
+
+== サンプル
+
+. プロジェクト作成／移動
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn archetype:generate \
+      -Duser.home=/var/maven \
+      -DarchetypeGroupId=org.glassfish.jersey.archetypes \
+      -DarchetypeArtifactId=jersey-quickstart-webapp \
+      -DarchetypeVersion=3.0.3 \
+      -DinteractiveMode=false \
+      -DgroupId=com.gmail.peregrin8alde.rest \
+      -DartifactId=restapp01 \
+      -Dversion=0.1.0-SNAPSHOT
+
+cd restapp01
+----
+. Payara にデプロイする場合、 CDI 関連の設定が必要
++
+[source,xml]
+----
+tee src/main/webapp/WEB-INF/beans.xml <<'EOF' >> /dev/null
+<beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd"
+        version="3.0"
+        bean-discovery-mode="none">
+</beans>
+EOF
+----
+. コンパイル
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn compile \
+      -Duser.home=/var/maven
+----
+. テスト
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn test \
+      -Duser.home=/var/maven
+----
+. ビルド（＋クリーン）
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn clean package \
+      -Duser.home=/var/maven
+----
+. 動作確認
++
+[source,shell]
+----
+cd ..
+cp restapp01/target/restapp01.war webapps/
+
+docker run \
+  -it \
+  --rm \
+  -p 8080:8080 \
+  -p 8181:8181 \
+  -p 4848:4848 \
+  -p 9009:9009 \
+  -v "$PWD/webapps":/opt/payara/deployments \
+  payara/server-web
+----
+** http://localhost:8080/restapp01 に接続すると Jersey の Welcome ページが表示される。
+** 以下で REST API にリクエストを実行と `Got it!` がレスポンスで返ってくる。
++
+[source,shell]
+----
+curl -XGET http://localhost:8080/restapp01/webapi/myresource
+----
+

@@ -45,3 +45,34 @@ http://localhost:8080
 * 4848 - Admin Service HTTPS listener
 ** admin / admin
 * 9009 - JWDP Debug port
+
+== トラブルシューティング
+
+* 以下のエラーが発生
++
+[source,shell]
+----
+  Exception during lifecycle processing
+org.glassfish.deployment.common.DeploymentException: CDI deployment failure:org.glassfish.jersey.internal.inject.ParamConverters and org.glassfish.jersey.internal.inject.ParamConverters$OptionalCustomProvider disagree on InnerClasses attribute -- org.glassfish.jersey.internal.inject.ParamConverters and org.glassfish.jersey.internal.inject.ParamConverters$OptionalCustomProvider disagree on InnerClasses attribute
+----
+** Payara の CDI とアプリの CDI が競合？
+*** 参照 : https://docs.payara.fish/community/docs/documentation/payara-server/app-deployment/descriptor-elements.html#enable-implicit-cdi[enable-implicit-cdi]
++
+[source,text]
+----
+When implicit CDI is configured by using either the enable-implicit-cdi property in the glassfish-application.xml or the attribute bean-discovery-mode="none" from the beans.xml file in a WAR, the admin console checkbox *is always ignored*. 
+----
+** `/WEB-INF/beans.xml` に `bean-discovery-mode="none"` を設定することで回避可能。他のアプリケーションサーバを利用した場合の影響は不明。
++
+[source,xml]
+----
+tee src/main/webapp/WEB-INF/beans.xml <<'EOF' >> /dev/null
+<beans xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/beans_3_0.xsd"
+        version="3.0"
+        bean-discovery-mode="none">
+</beans>
+EOF
+----
+*** 参考 : https://jakarta.ee/specifications/cdi/3.0/jakarta-cdi-spec-3.0.html[CDI の仕様]
