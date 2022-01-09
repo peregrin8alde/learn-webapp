@@ -57,27 +57,6 @@ http://localhost:8888
 
 ここでは、 JDK / Maven がセットになった https://hub.docker.com/_/maven[maven の Docker イメージ] を使うものとする。
 
-[source,shell]
-----
-# リポジトリ共有
-docker volume create --name maven-repo
-
-docker run \
-  --rm \
-  -v maven-repo:/root/.m2 \
-  maven:3-openjdk-11 \
-    mvn --version
-
-# ホーム利用
-docker run \
-  --rm \
-  -v "$HOME/.m2":/root/.m2 \
-  -w /usr/src/mymaven \
-  maven:3-openjdk-11 \
-    mvn --version
-----
-
-
 === 生産物
 
 参考 : https://tomcat.apache.org/tomcat-9.0-doc/appdev/deployment.html[Application Developer's Guide - Deployment]
@@ -122,37 +101,24 @@ https://maven.apache.org/archetypes/maven-archetype-webapp/[Maven Webapp Archety
 
 [source,shell]
 ----
-# コンテナ内は root 、ホスト側は任意ユーザを利用する想定で
-# root のリポジトリを利用しつつホスト側で利便性に応じて権限調整
-docker run \
-  --rm \
-  -v maven-repo:/root/.m2 \
-  -v "$PWD":/usr/src/mymaven \
-  -w /usr/src/mymaven \
-  maven:3-openjdk-11 \
-    mvn archetype:generate \
-      -DarchetypeGroupId=org.apache.maven.archetypes \
-      -DarchetypeArtifactId=maven-archetype-webapp \
-      -DarchetypeVersion=1.4 \
-      -DinteractiveMode=false \
-      -DgroupId=pkg1 \
-      -DartifactId=app01
+mvn archetype:generate \
+  -DarchetypeGroupId=org.apache.maven.archetypes \
+  -DarchetypeArtifactId=maven-archetype-webapp \
+  -DarchetypeVersion=1.4 \
+  -DinteractiveMode=false \
+  -DgroupId=pkg1 \
+  -DartifactId=app01
 
-sudo chown -R 1000:1000 app01
 mkdir -p app01/src/main/java/
 ----
+
+=== ビルド
 
 [source,shell]
 ----
 cd app01
 
-docker run \
-  --rm \
-  -v maven-repo:/root/.m2 \
-  -v "$PWD":/usr/src/mymaven \
-  -w /usr/src/mymaven \
-  maven:3-openjdk-11 \
-    mvn package
+mvn package
 ----
 
 == Deploy

@@ -1,0 +1,213 @@
+= Apache Maven
+
+https://maven.apache.org
+
+ビルドツール
+
+== Docker
+
+* https://hub.docker.com/_/maven
+* JDK / Maven がセット
+* `$MAVEN_CONFIG` （デフォルト : `/root/.m2` ）がローカルリポジトリとなるが、ボリュームとして利用するため、
+Dockerfile 内でファイルを配備してもイメージとなったときには削除される。そのため、 `/usr/share/maven/ref/` 
+が用意されており、コンテナ起動時にはここに配置したものが `$MAVEN_CONFIG` に自動コピーされる。
+** 設定ファイルやローカルリポジトリを Docker イメージに含める場合に利用
+
+[source,shell]
+----
+# 開発／単体テストなどは自分のホームディレクトリや任意ディレクトリをリポジトリにして IDE などから参照可能にして、
+# テスト／運用では専用のボリュームを使って特定の状態を維持する想定
+# （前者はホストと同じユーザ、後者は root ユーザでコンテナ起動する）
+# 開発／単体テスト
+## ローカルリポジトリはホーム配下のデフォルトの場所を利用
+### 色々な開発物に対しリポジトリを共有できるため、基本的にはこちら
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn --version \
+      -Duser.home=/var/maven
+
+## ローカルリポジトリは任意のディレクトリを利用
+### コンテナ内ではユーザのホーム `user.home` なので `settings.xml` は変更不要
+M2DIR="$PWD/.m2"
+mkdir ${M2DIR}
+
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "${M2DIR}":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn --version \
+      -Duser.home=/var/maven
+
+# テスト／運用
+## root リポジトリ共有
+docker volume create --name maven-repo
+
+docker run \
+  --rm \
+  -v maven-repo:/root/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  maven:3-openjdk-11 \
+    mvn --version
+----
+
+
+== サンプル
+
+Web アプリ作成のため、 https://maven.apache.org/archetypes/maven-archetype-webapp/[Maven Webapp Archetype] を使ったサンプルとする。
+
+参考 : https://maven.apache.org/guides/mini/guide-naming-conventions.html[命名規約]
+
+groupId::
+  全プロジェクトで一意な名前。 Java パッケージ名の規約に従ったもの。
+  ここでは、個人的な開発でドメインを所有しないので、一意にするための仮のパッケージ名として開発者のメールアドレスを利用する。
+artifactId::
+  バージョン番号を除いた jar ファイル名。
+version::
+  一般的なバージョン番号（ `1.0.0` など）。リリース前の開発中のものにはバージョン番号の後に `-SNAPSHOT` を付ける（ `1.0.0-SNAPSHOT` ）。
+
+. プロジェクト作成／移動
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn archetype:generate \
+      -Duser.home=/var/maven \
+      -DarchetypeGroupId=org.apache.maven.archetypes \
+      -DarchetypeArtifactId=maven-archetype-webapp \
+      -DarchetypeVersion=1.4 \
+      -DinteractiveMode=false \
+      -DgroupId=com.gmail.peregrin8alde.sample \
+      -DartifactId=app01 \
+      -Dversion=0.1.0-SNAPSHOT
+
+cd app01
+
+mkdir -p src/main/java/com/gmail/peregrin8alde/sample
+mkdir -p src/test/java/com/gmail/peregrin8alde/sample
+mkdir -p src/main/resources
+mkdir -p src/test/resources
+----
++
+なお、標準的なレイアウトは https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html[こちらを参照]
+. ダミークラス作成
++
+[source,shell]
+----
+mkdir -p src/main/java/com/gmail/peregrin8alde/sample/dummy
+
+tee src/main/java/com/gmail/peregrin8alde/sample/dummy/Dummy.java <<'EOF' >> /dev/null
+package com.gmail.peregrin8alde.sample.dummy;
+
+public class Dummy {
+  public String massage() {
+    return "dummy message";
+  }
+}
+EOF
+----
+. コンパイル
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn compile \
+      -Duser.home=/var/maven
+----
+. テスト
++
+[source,shell]
+----
+# ダミークラス用テスト作成
+mkdir -p src/test/java/com/gmail/peregrin8alde/sample/dummy
+
+tee src/test/java/com/gmail/peregrin8alde/sample/dummy/DummyTest.java <<'EOF' >> /dev/null
+package com.gmail.peregrin8alde.sample.dummy;
+
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
+public class DummyTest {
+    @Test
+    public void evaluatesExpression() {
+      Dummy target = new Dummy();
+
+      String message = target.massage();
+      assertEquals("dummy message", message);
+    }
+}
+EOF
+
+# テスト実行
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn test \
+      -Duser.home=/var/maven
+----
+. ビルド
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn package \
+      -Duser.home=/var/maven
+----
+. 再ビルド（クリーン + ビルド）
++
+[source,shell]
+----
+docker run \
+  --rm \
+  -it \
+  -u 1000 \
+  -v "$HOME/.m2":/var/maven/.m2 \
+  -v "$PWD:/usr/src/mymaven" \
+  -w /usr/src/mymaven \
+  -e MAVEN_CONFIG=/var/maven/.m2 \
+  maven:3-openjdk-11 \
+    mvn clean package \
+      -Duser.home=/var/maven
+----
