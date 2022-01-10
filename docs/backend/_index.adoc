@@ -8,4 +8,4 @@
 * ユーザ管理
 * ログ管理
 * API サーバー
-* API 管理
+* API 管理（ API Gateway）
