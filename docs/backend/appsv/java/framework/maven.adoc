@@ -24,7 +24,7 @@ Dockerfile 内でファイルを配備してもイメージとなったときに
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -41,7 +41,7 @@ mkdir ${M2DIR}
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "${M2DIR}":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -85,7 +85,7 @@ version::
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -133,7 +133,7 @@ EOF
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -170,7 +170,7 @@ EOF
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -186,7 +186,7 @@ docker run \
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -202,7 +202,7 @@ docker run \
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
