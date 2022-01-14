@@ -33,7 +33,7 @@ docker run \
   -p 4848:4848 \
   -p 9009:9009 \
   -v "$PWD/webapps":/opt/payara/deployments \
-  payara/server-web
+  payara/server-web:5.2021.10-jdk11
 ----
 
 http://localhost:8080
