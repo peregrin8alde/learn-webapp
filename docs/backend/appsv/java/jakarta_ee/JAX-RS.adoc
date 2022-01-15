@@ -17,7 +17,7 @@ https://eclipse-ee4j.github.io/jersey/download.html[Eclipse Jersey]
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -55,7 +55,7 @@ EOF
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -71,7 +71,7 @@ docker run \
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -87,7 +87,7 @@ docker run \
 docker run \
   --rm \
   -it \
-  -u 1000 \
+  -u 1000:1000 \
   -v "$HOME/.m2":/var/maven/.m2 \
   -v "$PWD:/usr/src/mymaven" \
   -w /usr/src/mymaven \
@@ -286,5 +286,159 @@ curl -XGET http://localhost:8080/restapp01/webapi/document/filter
 [source,shell]
 ----
 [{"site":"http://jersey.java.net"},{"site":"http://jsonp.java.net"}]
+----
+====
+
+=== JSON-B
+
+Eclipse Jersey で JSON-B を利用する場合。
+
+参考 : https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/media.html#json.json-b[Chapter 9. Support for Common Media Type Representations - 9.1.7. Java API for JSON Binding (JSON-B)]
+
+ライブラリとしては Yasson が使われている。
+
+==== 依存関係
+
+`pom.xml` で以下の依存関係の追加を行う。
+（ `jersey-quickstart-webapp` で自動生成された `pom.xml` の場合は元々コメントアウトされた状態で version 以外の記述がある）
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.glassfish.jersey.media</groupId>
+    <artifactId>jersey-media-json-binding</artifactId>
+    <version>2.35</version>
+</dependency>
+----
+
+==== 設定
+
+自動検出可能な機能のため、基本は設定不要。
+
+==== サンプル
+
+https://github.com/eclipse-ee4j/jersey/tree/master/examples/json-binding-webapp[JSON-B example]
+
+かなり古いため、パッケージ名で `javax` => `jakarta` の変換が必要。
+ただし、 `javax.json` は `jakarta.json` が参照できずビルドでエラーとなったため、保留。
+pom の依存関係のバージョンなどは正しいように見える。
+`mvn dependency:tree` では以下が出力されるし、 `org.glassfish:jakarta.json` はリポジトリに jar が存在する。。
+（逆に `javax.json` がどこから出てきたのかが不明）
+
+[source,shell]
+----
+[INFO] com.gmail.peregrin8alde.rest:restapp01:war:0.1.0-SNAPSHOT
+[INFO] +- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:3.0.3:compile
+[INFO] |  +- jakarta.inject:jakarta.inject-api:jar:2.0.0:compile
+[INFO] |  +- org.glassfish.jersey.core:jersey-common:jar:3.0.3:compile
+[INFO] |  |  +- jakarta.annotation:jakarta.annotation-api:jar:2.0.0:compile
+[INFO] |  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.3:compile
+[INFO] |  +- org.glassfish.jersey.core:jersey-server:jar:3.0.3:compile
+[INFO] |  |  +- org.glassfish.jersey.core:jersey-client:jar:3.0.3:compile
+[INFO] |  |  \- jakarta.validation:jakarta.validation-api:jar:3.0.0:compile
+[INFO] |  \- jakarta.ws.rs:jakarta.ws.rs-api:jar:3.0.0:compile
+[INFO] +- org.glassfish.jersey.inject:jersey-hk2:jar:3.0.3:compile
+[INFO] |  +- org.glassfish.hk2:hk2-locator:jar:3.0.1:compile
+[INFO] |  |  +- org.glassfish.hk2.external:aopalliance-repackaged:jar:3.0.1:compile
+[INFO] |  |  +- org.glassfish.hk2:hk2-api:jar:3.0.1:compile
+[INFO] |  |  \- org.glassfish.hk2:hk2-utils:jar:3.0.1:compile
+[INFO] |  \- org.javassist:javassist:jar:3.25.0-GA:compile
+[INFO] +- org.glassfish.jersey.media:jersey-media-json-binding:jar:2.35:compile
+[INFO] |  +- org.glassfish:jakarta.json:jar:1.1.6:compile
+[INFO] |  +- org.eclipse:yasson:jar:1.0.9:compile
+[INFO] |  |  \- org.glassfish:jakarta.json:jar:module:1.1.6:compile
+[INFO] |  +- jakarta.json.bind:jakarta.json.bind-api:jar:1.0.2:compile
+[INFO] |  \- jakarta.json:jakarta.json-api:jar:1.1.6:compile
+[INFO] \- org.glassfish.jersey.media:jersey-media-json-processing:jar:2.35:compile
+[INFO]    \- org.glassfish:jsonp-jaxrs:jar:1.1.6:compile
+----
+
+以下で動作確認可能（ URL 内の `/webapi` 部分は `web.xml` に記述された `<url-pattern>/webapi/*</url-pattern>` の影響）。
+
+. 登録
++
+.登録
+[#ex-cats-post]
+====
+[source,shell]
+----
+curl \
+  -v \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data ' {"color":"white","sort":"maine coon","catName":"Darwin", "domesticated":"true"}' \
+  http://localhost:8080/restapp01/webapi/cats/add
+----
+====
++
+.<<ex-cats-post>> の結果
+[%collapsible.result]
+====
+`POST is already inferred` は curl が `-d` 利用時に自動で POST するから不要だという旨らしい。
++
+[source,shell]
+----
+Note: Unnecessary use of -X or --request, POST is already inferred.
+*   Trying 127.0.0.1:8080...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> POST /restapp01/webapi/cats/add HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.68.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 80
+> 
+* upload completely sent off: 80 out of 80 bytes
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Server: Payara Server  5.2021.10 #badassfish
+< X-Powered-By: Servlet/4.0 JSP/2.3 (Payara Server  5.2021.10 #badassfish Java/Azul Systems, Inc./11)
+< Content-Length: 0
+< X-Frame-Options: SAMEORIGIN
+< 
+* Connection #0 to host localhost left intact
+----
+====
+. 参照
++
+.参照
+[#ex-cats-get]
+====
+[source,shell]
+----
+curl \
+  -X GET \
+  http://localhost:8080/restapp01/webapi/cats/one
+----
+====
++
+.<<ex-cats-get>> の結果
+[%collapsible.result]
+====
+[source,json]
+----
+{"color":"ginger","catSort":"semi-british","catName":"Alfred","domesticated":true}
+----
+====
+. 全件参照
++
+.全件参照
+[#ex-cats-getall]
+====
+[source,shell]
+----
+curl \
+  -X GET \
+  http://localhost:8080/restapp01/webapi/cats/all
+----
+====
++
+.<<ex-cats-getall>> の結果
+[%collapsible.result]
+====
+[source,json]
+----
+[{"color":"tabby","catSort":"semi-british","catName":"Rosa","domesticated":true},{"color":"ginger","catSort":"semi-british","catName":"Alfred","domesticated":true},{"color":"blue/silver","catSort":"british blue","catName":"Mishan","domesticated":true},{"color":"stracciatella","catSort":"common cat","catName":"Costa","domesticated":true},{"color":"white","catSort":"maine coon","catName":"Darwin","domesticated":true}]
 ----
 ====
