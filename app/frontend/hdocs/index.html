@@ -23,11 +23,25 @@
             jsonObj['param3'] = {};
             const param3 = form.elements.param3;
             for (let i = 0; i < param3.length; i++) {
-                    jsonObj['param3'][param3[i].value] = param3[i].checked;
+                jsonObj['param3'][param3[i].value] = param3[i].checked;
             }
 
             form.elements.result.value = JSON.stringify(jsonObj);
         }
+
+        function fetchGet(form) {
+            const url = 'http://localhost:8080/restapp01/webapi/cats/all'
+            fetch(url).then(function (response) {
+                return response.json();
+            }).then(function (json) {
+                let products = json;
+                form.elements.result.value = JSON.stringify(json);
+            }).catch(function (err) {
+                console.log('Fetch problem: ' + err.message);
+            });
+        }
+
+
     </script>
 
     <form name="jsonText" onsubmit="makeJsonFromText(this); return false">
@@ -49,6 +63,29 @@
         <p><button>Submit</button></p>
     </form>
 
+    <form name="create" onsubmit="return false">
+        <p><label>Request: <textarea name="request"></textarea></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>create</button></p>
+    </form>
+
+    <form name="read" onsubmit="fetchGet(this); return false">
+        <p><label>Request: <textarea name="request"></textarea></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>read</button></p>
+    </form>
+
+    <form name="update" onsubmit="return false">
+        <p><label>Request: <textarea name="request"></textarea></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>update</button></p>
+    </form>
+
+    <form name="delete" onsubmit="return false">
+        <p><label>Request: <textarea name="request"></textarea></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>delete</button></p>
+    </form>
 
 </body>
 
