@@ -154,8 +154,9 @@ https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element
 
 https://html.spec.whatwg.org/multipage/form-elements.html#the-output-element[4.10.12 The output element]
 
-入力に対して javascript で何か処理した結果を出力するための要素。
-フォーム送信に対する応答ではなく、個々の入力に対するリアルタイムな結果反映向けか？
+入力に対して javascript で何か処理した結果を出力するための要素。フォーム送信時には `<output>` に含まれる情報は送信されない。
+`<form>` の `oninput` 属性や `onchange` 属性に処理を記述してリアルタイムに表示更新したり、 `onsubmit` 属性に処理を記述して
+送信時に表示を更新したりする？
 
 [source,html]
 ----
