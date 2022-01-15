@@ -14,10 +14,13 @@ mkdir hdocs
 docker run --rm httpd:2.4 cat /usr/local/apache2/conf/httpd.conf > conf/my-httpd.conf
 
 docker run \
+  --rm \
   -dit \
   --name webapp-websv \
-  -p 8080:80 \
+  -p 80:80 \
   -v "$PWD/hdocs":/usr/local/apache2/htdocs/ \
   -v "$PWD/conf/my-httpd.conf":/usr/local/apache2/conf/httpd.conf \
   httpd:2.4
 ----
+
+http://localhost:80
