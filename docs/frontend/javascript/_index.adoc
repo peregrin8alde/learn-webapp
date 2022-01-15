@@ -1,0 +1,48 @@
+= JavaScript
+
+https://developer.mozilla.org/ja/docs/Web/JavaScript
+
+== JSON データの操作
+
+* https://developer.mozilla.org/ja/docs/Learn/JavaScript/Objects/JSON[JSON データの操作]
+* https://developer.mozilla.org/ja/docs/Learn/JavaScript/Objects/JSON#converting_between_objects_and_text[オブジェクトとテキスト間の変換]
+
+.サンプル）JSON データの作成／表示
+[source,html]
+----
+<script>
+    function makeJsonFromText(form) {
+        let json = JSON.parse(form.elements.text.value);
+        form.elements.result.value = JSON.stringify(json);
+    }
+    function makeJsonFromForm(form) {
+        let jsonObj = {};
+        jsonObj['parm1'] = form.elements.parm1.value;
+        jsonObj['param2'] = form.elements.param2.value;
+        jsonObj['param3'] = {};
+        const param3 = form.elements.param3;
+        for (let i = 0; i < param3.length; i++) {
+                jsonObj['param3'][param3[i].value] = param3[i].checked;
+        }
+        form.elements.result.value = JSON.stringify(jsonObj);
+    }
+</script>
+<form name="jsonText" onsubmit="makeJsonFromText(this); return false">
+    <p><label>jsonText: <textarea name="text"></textarea></label></p>
+    <p>result: <output name=result></output></p>
+    <p><button>Submit</button></p>
+</form>
+<form name="jsonInfo" onsubmit="makeJsonFromForm(this); return false">
+    <p><label>parm1: <input name="parm1"></label></p>
+    <p><label>param2: <textarea name="param2"></textarea></label></p>
+    <fieldset>
+        <legend>param3</legend>
+        <p><label> <input type=checkbox name="param3" value="opt1"> Option1 </label></p>
+        <p><label> <input type=checkbox name="param3" value="opt2"> Option2 </label></p>
+        <p><label> <input type=checkbox name="param3" value="opt3"> Option3 </label></p>
+    </fieldset>
+    <p>result: <output name=result></output></p>
+    <p><button>Submit</button></p>
+</form>
+----
+
