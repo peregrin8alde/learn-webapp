@@ -177,3 +177,49 @@ https://html.spec.whatwg.org/multipage/form-elements.html#the-output-element[4.1
  }
 </script>
 ----
+
+== Script
+
+https://html.spec.whatwg.org/multipage/scripting.html[4.12 Scripting]
+
+* スクリプトを使うことで、ページに双方向性を持たせることができるが、保守性を考えるとできるだけスクリプトを
+使わずに宣言的に作成したほうが良い。
+* 従来の HTML に Javascript 全体を埋め込む形の `classic scripts` と、 `import` などで外部の Javascript モジュールを
+ライブラリとして利用可能な `JavaScript module scripts` が存在する。
+* 読み込まれるタイミングや有効になるタイミングに注意
+* 以下のサンプルでは、関数を宣言して、ドキュメント解析時に実行して出力部を初期化したり、入力更新時に再実行したりしている。
++
+[source,html]
+----
+<script>
+ function calculate(form) {
+   var price = 52000;
+   if (form.elements.brakes.checked)
+     price += 1000;
+   if (form.elements.radio.checked)
+     price += 2500;
+   if (form.elements.turbo.checked)
+     price += 5000;
+   if (form.elements.sticker.checked)
+     price += 250;
+   form.elements.result.value = price;
+ }
+</script>
+<form name="pricecalc" onsubmit="return false" onchange="calculate(this)">
+ <fieldset>
+  <legend>Work out the price of your car</legend>
+  <p>Base cost: £52000.</p>
+  <p>Select additional options:</p>
+  <ul>
+   <li><label><input type=checkbox name=brakes> Ceramic brakes (£1000)</label></li>
+   <li><label><input type=checkbox name=radio> Satellite radio (£2500)</label></li>
+   <li><label><input type=checkbox name=turbo> Turbo charger (£5000)</label></li>
+   <li><label><input type=checkbox name=sticker> "XZ" sticker (£250)</label></li>
+  </ul>
+  <p>Total: £<output name=result></output></p>
+ </fieldset>
+ <script>
+  calculate(document.forms.pricecalc);
+ </script>
+</form>
+----
