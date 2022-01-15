@@ -20,3 +20,159 @@ https://html.spec.whatwg.org/multipage/introduction.html#a-quick-introduction-to
  </body>
 </html>
 ----
+
+== フォーム
+
+https://html.spec.whatwg.org/multipage/forms.html
+
+=== フォームの基本
+
+* `<form>` で囲まれた中にフォームコントロール（代表例 `<input>` ）があり、個々のコントロールはラベルを
+付けるために、 `<label>` で囲まれる。また、各部品は他の部品と区分けするために `<p>` で段落を分ける。
++
+[source,html]
+----
+<form>
+ <p><label>Customer name: <input></label></p>
+</form>
+----
+* コントロールをグループかする場合には、 `fieldset` が使われる。
++
+[source,html]
+----
+<form>
+ <p><label>Customer name: <input></label></p>
+ <fieldset>
+  <legend> Pizza Size </legend>
+  <p><label> <input type=radio name=size> Small </label></p>
+  <p><label> <input type=radio name=size> Medium </label></p>
+  <p><label> <input type=radio name=size> Large </label></p>
+ </fieldset>
+</form>
+----
+* 入力方式は、 `<input>` の `type` 属性で変化させる。電話番号には `tel` 、メールアドレスには `email` 、
+時刻には `time` といったように様々な `type` が存在する（入力時や送信時に異常チェックが行われるかは
+場合による？）。
++
+[source,html]
+----
+<form>
+ <p><label>Customer name: <input></label></p>
+ <p><label>Telephone: <input type=tel></label></p>
+ <p><label>Email address: <input type=email></label></p>
+ <fieldset>
+  <legend> Pizza Size </legend>
+  <p><label> <input type=radio name=size> Small </label></p>
+  <p><label> <input type=radio name=size> Medium </label></p>
+  <p><label> <input type=radio name=size> Large </label></p>
+ </fieldset>
+ <fieldset>
+  <legend> Pizza Toppings </legend>
+  <p><label> <input type=checkbox> Bacon </label></p>
+  <p><label> <input type=checkbox> Extra Cheese </label></p>
+  <p><label> <input type=checkbox> Onion </label></p>
+  <p><label> <input type=checkbox> Mushroom </label></p>
+ </fieldset>
+ <p><label>Preferred delivery time: <input type=time min="11:00" max="21:00" step="900"></label></p>
+ <p><label>Delivery instructions: <textarea></textarea></label></p>
+</form>
+----
+* フォームに入力した内容を送信するために、 `button` を含める。
+[source,html]
+----
+<form>
+ <p><label>Customer name: <input></label></p>
+ 〜中略〜
+ <p><button>Submit order</button></p>
+</form>
+----
+
+=== サーバとのやりとり
+
+https://html.spec.whatwg.org/multipage/forms.html#configuring-a-form-to-communicate-with-a-server
+
+* `<form>` の `method` 属性でメソッド（ GET / POST など）を指定
+* `<form>` の `enctype` 属性でフォームデータのエンコード（ `application/json` などの
+ https://developer.mozilla.org/ja/docs/Web/HTTP/Basics_of_HTTP/MIME_types[メディアタイプ] ）を指定
+* `<form>` の `action` 属性で送信先 URL を指定
+* サーバ側で各コントロール（ `<input>` ）を区別するために `name` 属性を付ける。 `name` が同じもの
+（グループ化されたラジオボタンなど）については、 `value` で区別を行う。
+
+[source,html]
+----
+<form method="post"
+      enctype="application/x-www-form-urlencoded"
+      action="https://pizza.example.com/order.cgi">
+ <p><label>Customer name: <input name="custname"></label></p>
+ <p><label>Telephone: <input type=tel name="custtel"></label></p>
+ <p><label>Email address: <input type=email name="custemail"></label></p>
+ <fieldset>
+  <legend> Pizza Size </legend>
+  <p><label> <input type=radio name=size value="small"> Small </label></p>
+  <p><label> <input type=radio name=size value="medium"> Medium </label></p>
+  <p><label> <input type=radio name=size value="large"> Large </label></p>
+ </fieldset>
+ <fieldset>
+  <legend> Pizza Toppings </legend>
+  <p><label> <input type=checkbox name="topping" value="bacon"> Bacon </label></p>
+  <p><label> <input type=checkbox name="topping" value="cheese"> Extra Cheese </label></p>
+  <p><label> <input type=checkbox name="topping" value="onion"> Onion </label></p>
+  <p><label> <input type=checkbox name="topping" value="mushroom"> Mushroom </label></p>
+ </fieldset>
+ <p><label>Preferred delivery time: <input type=time min="11:00" max="21:00" step="900" name="delivery"></label></p>
+ <p><label>Delivery instructions: <textarea name="comments"></textarea></label></p>
+ <p><button>Submit order</button></p>
+</form>
+----
+
+=== クライアント側での入力値チェック
+
+https://html.spec.whatwg.org/multipage/forms.html#client-side-form-validation
+
+* 必須指定 : `required` 属性
++
+[source,html]
+----
+<p><label>Customer name: <input name="custname" required></label></p>
+----
+* 最大長指定 : `maxlength` 属性
++
+[source,html]
+----
+<p><label>Delivery instructions: <textarea name="comments" maxlength=1000></textarea></label></p>
+----
+
+=== <input> について
+
+`<input>` の詳細については https://html.spec.whatwg.org/multipage/input.html[4.10.5 The input element] 参照
+
+=== <button> について
+
+https://html.spec.whatwg.org/multipage/form-elements.html#the-button-element
+
+=== <output> について
+
+https://html.spec.whatwg.org/multipage/form-elements.html#the-output-element[4.10.12 The output element]
+
+入力に対して javascript で何か処理した結果を出力するための要素。
+フォーム送信に対する応答ではなく、個々の入力に対するリアルタイムな結果反映向けか？
+
+[source,html]
+----
+<form onsubmit="return false" oninput="o.value = a.valueAsNumber + b.valueAsNumber">
+ <input id=a type=number step=any> +
+ <input id=b type=number step=any> =
+ <output id=o for="a b"></output>
+</form>
+----
+
+[source,html]
+----
+<output id="result"></output>
+<script>
+ var primeSource = new WebSocket('ws://primes.example.net/');
+ primeSource.onmessage = function (event) {
+   document.getElementById('result').value = event.data;
+ }
+</script>
+----
