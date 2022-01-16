@@ -1,0 +1,35 @@
+= REST API(RESTful API)
+
+Representational State Transfer (REST) に準拠（ RESTful ）した設計の API のこと。
+
+[quote, Roy Thomas Fielding, 'https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[CHAPTER 5 Representational State Transfer (REST)]' ]
+____
+REST provides a set of architectural constraints that, when applied as a whole, emphasizes scalability of component interactions, generality of interfaces, independent deployment of components, and intermediary components to reduce interaction latency, enforce security, and encapsulate legacy systems.
+____
+
+以下の６つの原則に準拠する。
+
+. Client-Server
+** クライアントとサーバーは分離されており、 I/F による繋がり以外で互いに影響を与えない。
+. Stateless
+** 通信はステートレスであり、サーバー側にコンテキストを保存することはできない。
+クライアントからサーバーへのリクエストにはサーバーがそれを処理するために必要な情報を
+全て含める必要があり、セッション情報は全てクライアント側で保持する。
+. Cache
+** キャッシュ可能な場合はクライアント側でキャッシュを利用可能である。
+. Uniform Interface
+** コンポーネント間で統一された I/F を持つ。そのために以下の４つの制約がある。
+*** identification of resources : クライアントがリソースを識別可能であること
+*** manipulation of resources through representations : クライアントが表現（レスポンスに含まれる情報のこと？）を介してリソースを操作可能であること
++
+[quote, Roy Thomas Fielding, 'https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[5.2.1.2 Representations]' ]
+____
+A representation consists of data, metadata describing the data, and, on occasion, metadata to describe the metadata (usually for the purpose of verifying message integrity). Metadata is in the form of name-value pairs, where the name corresponds to a standard that defines the value's structure and semantics. Response messages may include both representation metadata and resource metadata: information about the resource that is not specific to the supplied representation.
+____
+
+*** self-descriptive messages : クライアントがメッセージを解釈するのに充分な情報を含んでいる、自己記述的なメッセージであること
+*** hypermedia as the engine of application state(HATEOAS) : クライアントがハイパーメディア（グラフィックス、音声、動画、テキスト、ハイパーリンクなどの組み合わせ）を
+通してアプリの状態を操作することができる。例えば、購買サイトで「商品」の情報を取得すると、その商品を「購入」したり関連する情報を「取得」するためのリンクを表現に含めるなど？
+. Layered System : システムは階層構造を持ち、隣接している階層以外には直接アクセスできないこと。
+. Code-On-Demand （オプションの制約） : アプレットやスクリプト形式でコードをダウンロードさせることで、クライアントの機能拡張が可能であること
+
