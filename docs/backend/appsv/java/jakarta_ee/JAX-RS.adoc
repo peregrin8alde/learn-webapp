@@ -454,10 +454,12 @@ ____
 image::cors_principle.png[]
 ____
 
-https://developer.mozilla.org/ja/docs/Glossary/Preflight_request[CORS プリフライト] が必要ない場合と必要な場合で対処が
+https://developer.mozilla.org/ja/docs/Glossary/Preflight_request[CORS プリフライト] が発生しない場合と発生する場合で対処が
 異なる。
 
-以下の条件を全て満たす場合、 CORS プリフライトが不要。
+=== プリフライトが発生しない場合
+
+以下の条件を全て満たす場合、 CORS プリフライトが発生しない。
 参考 : https://developer.mozilla.org/ja/docs/Web/HTTP/CORS#%E5%8D%98%E7%B4%94%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88[単純リクエスト]
 
 * 許可されているメソッドのうちのいずれかであること。
@@ -535,3 +537,45 @@ public class CorsFilter implements ContainerResponseFilter {
 ----
 
 `@Provider` は `web.xml` 編集しないで自動適用するために付与している。
+
+=== プリフライトが発生する場合
+
+前述のプリフライトが発生しない場合を除いて、特別な通信が発生する。
+
+[quote, MDN Web Docs,'オリジン間リソース共有 (CORS), https://developer.mozilla.org/ja/docs/Web/HTTP/CORS#preflighted_requests[プリフライトリクエスト]' ]
+____
+「プリフライト」リクエストは始めに OPTIONS メソッドによる HTTP リクエストを他のドメインにあるリソースに向けて送り、
+実際のリクエストを送信しても安全かどうかを確かめます。サイト間リクエストがユーザーデータに影響を与える可能性が
+あるような場合に、このようにプリフライトを行います。
+____
+
+この場合、サーバからのレスポンスヘッダーにおいて以下の値を設定することで解決可能。
+
+* https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Methods[Access-Control-Allow-Method]
+** 許可したいメソッドを指定する。
+* https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Headers[Access-Control-Allow-Headers]
+** 許可したいカスタムヘッダーを指定する。
+
+.CORS （プリフライト対応付き）用の ContainerResponseFilter サンプル
+[source,java]
+----
+import java.io.IOException;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
+
+@Provider
+public class CorsFilter implements ContainerResponseFilter {
+ 
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
+
+            responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
+            responseContext.getHeaders().add("Access-Control-Allow-Method", "POST, PUT, DELETE");
+            responseContext.getHeaders().add("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type");
+    }
+}
+----
+

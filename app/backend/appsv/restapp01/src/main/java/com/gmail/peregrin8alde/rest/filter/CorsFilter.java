@@ -14,5 +14,7 @@ public class CorsFilter implements ContainerResponseFilter {
         throws IOException {
 
             responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
+            responseContext.getHeaders().add("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type");
+            responseContext.getHeaders().add("Access-Control-Allow-Method", "POST, PUT, DELETE");
     }
 }
