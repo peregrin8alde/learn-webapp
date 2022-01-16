@@ -21,6 +21,8 @@ https://hub.docker.com/u/payara
 
 https://docs.payara.fish/community/docs/documentation/ecosystem/docker-images/server-image-overview.html
 
+=== Full Profile
+
 [source,shell]
 ----
 mkdir webapps
@@ -45,6 +47,31 @@ http://localhost:8080
 * 4848 - Admin Service HTTPS listener
 ** admin / admin
 * 9009 - JWDP Debug port
+
+=== Payara Micro
+
+`--deploy` を指定することで一部のアプリだけをデプロイすることが可能。
+
+[source,shell]
+----
+mkdir webapps
+
+docker run \
+  -it \
+  --rm \
+  -p 8080:8080 \
+  -p 6900:6900 \
+  -v "$PWD/webapps":/opt/payara/deployments \
+  payara/micro:5.2021.10-jdk11 \
+    --deploy /opt/payara/deployments/myapplication.war
+----
+
+http://localhost:8080
+
+ポートの意味は以下
+
+* 8080 - HTTP listener
+* 6900 - Datagrid's Hazelcast port
 
 == トラブルシューティング
 
