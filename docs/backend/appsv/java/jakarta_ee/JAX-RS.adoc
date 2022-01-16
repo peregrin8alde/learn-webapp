@@ -442,3 +442,96 @@ curl \
 [{"color":"tabby","catSort":"semi-british","catName":"Rosa","domesticated":true},{"color":"ginger","catSort":"semi-british","catName":"Alfred","domesticated":true},{"color":"blue/silver","catSort":"british blue","catName":"Mishan","domesticated":true},{"color":"stracciatella","catSort":"common cat","catName":"Costa","domesticated":true},{"color":"white","catSort":"maine coon","catName":"Darwin","domesticated":true}]
 ----
 ====
+
+== CORS
+
+https://developer.mozilla.org/ja/docs/Web/HTTP/CORS[オリジン間リソース共有 (CORS)]
+
+[quote, MDN Web Docs,'オリジン間リソース共有 (CORS), https://developer.mozilla.org/ja/docs/Web/HTTP/CORS[cors_principle.png]' ]
+____
+オリジン間リクエストとは、例えば https://domain-a.com で提供されているウェブアプリケーションのフロントエンド JavaScript コードが XMLHttpRequest を使用して https://domain-b.com/data.json へリクエストを行うような場合です。
+
+image::cors_principle.png[]
+____
+
+https://developer.mozilla.org/ja/docs/Glossary/Preflight_request[CORS プリフライト] が必要ない場合と必要な場合で対処が
+異なる。
+
+以下の条件を全て満たす場合、 CORS プリフライトが不要。
+参考 : https://developer.mozilla.org/ja/docs/Web/HTTP/CORS#%E5%8D%98%E7%B4%94%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88[単純リクエスト]
+
+* 許可されているメソッドのうちのいずれかであること。
+** GET
+** HEAD
+** POST
+* ユーザーエージェントによって自動的に設定されたヘッダーを除いて、手動で設定できるヘッダーが以下のヘッダーだけ。
+** Accept
+** Accept-Language
+** Content-Language
+** https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Content-Type[Content-Type] (但し、以下の値のみ)
+*** application/x-www-form-urlencoded
+*** multipart/form-data
+*** text/plain
+** XMLHttpRequest オブジェクトを使用してリクエストを行う場合、
++
+[quote, MDN Web Docs,'オリジン間リソース共有 (CORS), https://developer.mozilla.org/ja/docs/Web/HTTP/CORS#%E5%8D%98%E7%B4%94%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88[単純リクエスト]' ]
+____
+XMLHttpRequest.upload プロパティから返されるオブジェクトにイベントリスナーが登録されていないこと。すなわち、 XMLHttpRequest インスタンスを xhr とした場合、どのコードも xhr.upload.addEventListener() が呼び出してアップロードを監視するためのイベントリスナーを追加していないこと。
+____
+** リクエストに ReadableStream オブジェクトが使用されていないこと。
+
+この場合、サーバからのレスポンスヘッダーにおいて https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Origin[Access-Control-Allow-Origin] 
+で許可するクライアント（ `Origin` ヘッダーの値）を指定することで解決可能。
+
+* どこからのアクセスでも許可する場合 : `Access-Control-Allow-Origin: *`
+* 指定の URL からのアクセスを許可する場合 : `Access-Control-Allow-Origin: <origin>`
+
+基本的に全てのレスポンスへ追加することになるため、 https://jakarta.ee/specifications/restful-ws/3.0/jakarta-restful-ws-spec-3.0.html#filters[Filters]
+の `ContainerResponse` を使うことになる。
+
+* https://jakarta.ee/specifications/restful-ws/3.0/apidocs/jakarta/ws/rs/container/containerresponsefilter[JAX-RS の Interface ContainerResponseFilter]
+* https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/filters-and-interceptors.html[Eclipse Jersey での Filters]
+* https://eclipse-ee4j.github.io/jaxrs-api/apidocs/2.1.6/javax/ws/rs/container/ContainerResponseFilter.html[Eclipse Jersey での Interface ContainerResponseFilter]
++
+.ContainerResponseFilter サンプル
+[source,java]
+----
+import java.io.IOException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.Response;
+ 
+public class PoweredByResponseFilter implements ContainerResponseFilter {
+ 
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
+ 
+            responseContext.getHeaders().add("X-Powered-By", "Jersey :-)");
+    }
+}
+----
+
+.CORS 用の ContainerResponseFilter サンプル
+[source,java]
+----
+import java.io.IOException;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
+
+@Provider
+public class CorsFilter implements ContainerResponseFilter {
+ 
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
+
+            responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
+    }
+}
+----
+
+`@Provider` は `web.xml` 編集しないで自動適用するために付与している。
