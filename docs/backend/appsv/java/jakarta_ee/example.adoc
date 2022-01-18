@@ -1,0 +1,63 @@
+= サンプルコード
+
+.参考
+* https://eclipse-ee4j.github.io/jersey.github.io/documentation/latest/jaxrs-resources.html
+* https://jakarta.ee/specifications/restful-ws/3.0/jakarta-restful-ws-spec-3.0.html#uris-and-uri-templates
+
+[source,text]
+----
+GET     /restapp01/webapi/resource01/books
+POST    /restapp01/webapi/resource01/books
+DELETE  /restapp01/webapi/resource01/books/{id}
+GET     /restapp01/webapi/resource01/books/{id}
+PUT     /restapp01/webapi/resource01/books/{id}
+----
+
+.実行例
+[source,shell]
+----
+curl -X POST \
+  -i \
+  -H "Content-Type: application/json" \
+  --data '{"title":"book01"}' \
+  "http://localhost:8080/restapp01/webapi/resource01/books"
+
+curl -X POST \
+  -i \
+  -H "Content-Type: application/json" \
+  --data '{"title":"book02"}' \
+  "http://localhost:8080/restapp01/webapi/resource01/books"
+
+curl -X GET \
+  -i \
+  "http://localhost:8080/restapp01/webapi/resource01/books"
+
+curl -X GET \
+  -i \
+  "http://localhost:8080/restapp01/webapi/resource01/books/53a8841a-5117-48cc-bcb4-431b1c202b0f"
+
+curl -X PUT \
+  -i \
+  -H "Content-Type: application/json" \
+  --data '{"title":"book001"}' \
+  "http://localhost:8080/restapp01/webapi/resource01/books/53a8841a-5117-48cc-bcb4-431b1c202b0f"
+
+curl -X DELETE \
+  -i \
+  "http://localhost:8080/restapp01/webapi/resource01/books/53a8841a-5117-48cc-bcb4-431b1c202b0f"
+----
+
+.エラー例
+[source,shell]
+----
+HTTP/1.1 404 Not Found
+Server: Payara Micro #badassfish
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: X-PINGOTHER, Content-Type
+Access-Control-Allow-Method: POST, PUT, DELETE
+Content-Type: application/json
+Content-Length: 204
+X-Frame-Options: SAMEORIGIN
+
+{"message":"not found book","messageId":"fbdf6b4d-9c57-4da1-ba93-758c0891272b","requestUri":"http://localhost:8080/restapp01/webapi/resource01/books/53a8841a-5117-48cc-bcb4-431b1c202b0f","statusCode":404}
+----
