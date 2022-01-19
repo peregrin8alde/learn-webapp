@@ -1,6 +1,8 @@
 package com.gmail.peregrin8alde.rest.resource01;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +29,7 @@ import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
 @Produces("application/json")
 public class Resource01 {
 
-    private static Map<String, Book> books = new HashMap<String, Book>();
+    private static Map<String, Book> bookStorage = new HashMap<String, Book>();
     private final boolean allowCreateByPutId = false;
 
     /* Create */
@@ -37,7 +39,7 @@ public class Resource01 {
         String id = UUID.randomUUID().toString();
 
         book.setId(id);
-        books.put(id, book);
+        bookStorage.put(id, book);
 
         /*
          * レスポンスのレスポンスステータスコードが 201
@@ -52,14 +54,23 @@ public class Resource01 {
     /* Read */
     @Path("/books")
     @GET
-    public Map<String, Book> readBooks() {
+    public List<Book> readBooks() {
+        /* 一覧は配列で返すこととする */
+        /* 内部で持つ形式とは独立させる */
+        List<Book> books = new ArrayList<Book>();
+        
+        /* 一度に返す数やページ数指定、ソートなどはここで調整 */
+        for (Book book : bookStorage.values()) {
+            books.add(book);
+        }
+
         return books;
     }
 
     @Path("/books/{id}")
     @GET
     public Response readBookById(@PathParam("id") String id, @Context UriInfo uriInfo) {
-        if (books.get(id) == null) {
+        if (bookStorage.get(id) == null) {
             /* 指定された URI のリソースが存在しないという意味で 404 */
             Status status = Status.NOT_FOUND;
 
@@ -71,7 +82,7 @@ public class Resource01 {
             return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
         }
 
-        return Response.ok().entity(books.get(id)).type(MediaType.APPLICATION_JSON).build();
+        return Response.ok().entity(bookStorage.get(id)).type(MediaType.APPLICATION_JSON).build();
     }
 
     /* Update */
@@ -80,10 +91,10 @@ public class Resource01 {
     public Response updateBookById(@PathParam("id") String id, Book book, @Context UriInfo uriInfo) {
         book.setId(id);
 
-        if (books.replace(id, book) == null) {
+        if (bookStorage.replace(id, book) == null) {
             if (allowCreateByPutId) {
                 /* 新規作成を許可する場合 */
-                books.put(id, book);
+                bookStorage.put(id, book);
 
                 /* 新規追加した */
                 /*
@@ -122,7 +133,7 @@ public class Resource01 {
     @Path("/books/{id}")
     @DELETE
     public Response deleteBookById(@PathParam("id") String id, @Context UriInfo uriInfo) {
-        if (books.remove(id) == null) {
+        if (bookStorage.remove(id) == null) {
             /* 指定された URI のリソースが存在しないという意味で 404 */
             Status status = Status.NOT_FOUND;
 
