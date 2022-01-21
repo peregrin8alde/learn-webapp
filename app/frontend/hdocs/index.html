@@ -8,112 +8,11 @@
 <body>
     <h1>Sample page</h1>
 
-    <script>
-        function makeJsonFromText(form) {
-            let json = JSON.parse(form.elements.text.value);
-
-            form.elements.result.value = JSON.stringify(json);
-        }
-
-        function makeJsonFromForm(form) {
-            let jsonObj = {};
-            jsonObj['parm1'] = form.elements.parm1.value;
-            jsonObj['param2'] = form.elements.param2.value;
-
-            jsonObj['param3'] = {};
-            const param3 = form.elements.param3;
-            for (let i = 0; i < param3.length; i++) {
-                jsonObj['param3'][param3[i].value] = param3[i].checked;
-            }
-
-            form.elements.result.value = JSON.stringify(jsonObj);
-        }
-
-        function fetchGet(form) {
-            const url = 'http://localhost:8080/restapp01/webapi/cats/all';
-
-            fetch(url).then(function (response) {
-                return response.json();
-            }).then(function (json) {
-                let products = json;
-                form.elements.result.value = JSON.stringify(json);
-            }).catch(function (err) {
-                console.log('Fetch problem: ' + err.message);
-            });
-        }
-
-        function fetchPost(form) {
-            const url = 'http://localhost:8080/restapp01/webapi/cats/add';
-
-            let data = {};
-            data['color'] = form.elements.color.value;
-            data['sort'] = form.elements.sort.value;
-            data['catName'] = form.elements.catName.value;
-            data['domesticated'] = form.elements.domesticated.checked;
-
-            fetch(url, {
-                method: 'POST', // or 'PUT'
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-                //.then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
-    </script>
-
-    <form name="jsonText" onsubmit="makeJsonFromText(this); return false">
-        <p><label>jsonText: <textarea name="text"></textarea></label></p>
-        <p>result: <output name=result></output></p>
-        <p><button>Submit</button></p>
-    </form>
-
-    <form name="jsonInfo" onsubmit="makeJsonFromForm(this); return false">
-        <p><label>parm1: <input name="parm1"></label></p>
-        <p><label>param2: <textarea name="param2"></textarea></label></p>
-        <fieldset>
-            <legend>param3</legend>
-            <p><label> <input type=checkbox name="param3" value="opt1"> Option1 </label></p>
-            <p><label> <input type=checkbox name="param3" value="opt2"> Option2 </label></p>
-            <p><label> <input type=checkbox name="param3" value="opt3"> Option3 </label></p>
-        </fieldset>
-        <p>result: <output name=result></output></p>
-        <p><button>Submit</button></p>
-    </form>
-
-    <form name="create" onsubmit="fetchPost(this); return false">
-        <p><label>color: <input name="color"></label></p>
-        <p><label>sort: <input name="sort"></label></p>
-        <p><label>catName: <input name="catName"></label></p>
-        <p><label><input type=checkbox name="domesticated"> domesticated </label></p>
-        <p>Response: <output name=result></output></p>
-        <p><button>create</button></p>
-    </form>
-
-    <form name="read" onsubmit="fetchGet(this); return false">
-        <p><label>Request: <textarea name="request"></textarea></label></p>
-        <p>Response: <output name=result></output></p>
-        <p><button>read</button></p>
-    </form>
-
-    <form name="update" onsubmit="return false">
-        <p><label>Request: <textarea name="request"></textarea></label></p>
-        <p>Response: <output name=result></output></p>
-        <p><button>update</button></p>
-    </form>
-
-    <form name="delete" onsubmit="return false">
-        <p><label>Request: <textarea name="request"></textarea></label></p>
-        <p>Response: <output name=result></output></p>
-        <p><button>delete</button></p>
-    </form>
-
+    <ul>
+        <li><a href="/samples/form.html">form</a></li>
+        <li><a href="/samples/cats.html">cats</a></li>
+        <li><a href="/samples/resource01.html">resource01</a></li>
+    </ul>
 </body>
 
 </html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Sample page</title>
+</head>
+
+<body>
+    <h1>Sample page</h1>
+
+    <script>
+
+        function fetchPost(form) {
+            const url = 'http://localhost:8080/restapp01/webapi/resource01/books';
+
+            let data = {};
+            data['title'] = form.elements.title.value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => {
+                // アロー関数で表現したパターン（複数行の文の場合は {} や 復帰値がある場合は return が必要）
+                // POST はリソースを作成してその結果のリソース URI を Location ヘッダで返す
+                console.log('Success:', response);
+
+                // レスポンスヘッダで Access-Control-Expose-Headers に指定しないと Fetch API で Location が見れなかった
+                const uri = response.headers.get('Location');
+                console.log('uri:', uri);
+
+                form.elements.result.value = uri;
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        function fetchGetAll(form) {
+            const url = 'http://localhost:8080/restapp01/webapi/resource01/books';
+
+            fetch(url).then(function (response) {
+                // 通常の関数で表現したパターン
+                return response.json();
+            }).then(function (json) {
+                form.elements.result.value = JSON.stringify(json);
+            }).catch(function (err) {
+                console.log('Fetch problem: ' + err.message);
+            });
+        }
+
+        function fetchGetById(form) {
+            const id = form.elements.id.value;
+            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    console.log('json:', json);
+                    form.elements.result.value = JSON.stringify(json);
+                }).catch(err => {
+                    console.log('Fetch problem: ' + err.message);
+                });
+        }
+
+        function fetchPutById(form) {
+            const id = form.elements.id.value;
+            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+
+            let data = {};
+            data['id'] = id;
+            data['title'] = form.elements.title.value;
+
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => {
+                console.log('Success:', response);
+
+                form.elements.result.value = response.status;
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        function fetchDeleteById(form) {
+            const id = form.elements.id.value;
+            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+
+            fetch(url, {
+                method: 'DELETE',
+            }).then(response => {
+                console.log('Success:', response);
+
+                form.elements.result.value = response.status;
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+    </script>
+
+    <form name="create" onsubmit="fetchPost(this); return false">
+        <p><label>title: <input name="title"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>create</button></p>
+    </form>
+
+    <form name="readAll" onsubmit="fetchGetAll(this); return false">
+        <p>Response: <output name=result></output></p>
+        <p><button>readAll</button></p>
+    </form>
+
+    <form name="readById" onsubmit="fetchGetById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>readById</button></p>
+    </form>
+
+    <form name="updateById" onsubmit="fetchPutById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p><label>title: <input name="title"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>update</button></p>
+    </form>
+
+    <form name="deleteById" onsubmit="fetchDeleteById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>delete</button></p>
+    </form>
+
+</body>
+
+</html>

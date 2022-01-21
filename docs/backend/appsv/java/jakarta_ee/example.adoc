@@ -61,3 +61,6 @@ X-Frame-Options: SAMEORIGIN
 
 {"message":"not found book","messageId":"fbdf6b4d-9c57-4da1-ba93-758c0891272b","requestUri":"http://localhost:8080/restapp01/webapi/resource01/books/53a8841a-5117-48cc-bcb4-431b1c202b0f","statusCode":404}
 ----
+
+curl だと CORS を再現できない（プリフライトが行われない）ので注意。ブラウザからのアクセスで動作確認したほうが良い。
+
