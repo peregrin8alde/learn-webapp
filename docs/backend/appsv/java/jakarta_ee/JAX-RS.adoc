@@ -551,7 +551,7 @@ ____
 
 この場合、サーバからのレスポンスヘッダーにおいて以下の値を設定することで解決可能。
 
-* https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Methods[Access-Control-Allow-Method]
+* https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Methods[Access-Control-Allow-Methods]
 ** 許可したいメソッドを指定する。
 * https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Access-Control-Allow-Headers[Access-Control-Allow-Headers]
 ** 許可したいカスタムヘッダーを指定する。
@@ -573,8 +573,10 @@ public class CorsFilter implements ContainerResponseFilter {
         throws IOException {
 
             responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
-            responseContext.getHeaders().add("Access-Control-Allow-Method", "POST, PUT, DELETE");
-            responseContext.getHeaders().add("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type");
+            responseContext.getHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            responseContext.getHeaders().add("Access-Control-Allow-Methods", "POST, PUT, DELETE");
+            // Access-Control-Expose-Headers に指定しないと Fetch API で Location が見れなかった
+            responseContext.getHeaders().add("Access-Control-Expose-Headers", "Location");
     }
 }
 ----

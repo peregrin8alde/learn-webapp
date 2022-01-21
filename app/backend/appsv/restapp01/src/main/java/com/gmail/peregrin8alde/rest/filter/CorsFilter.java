@@ -14,7 +14,9 @@ public class CorsFilter implements ContainerResponseFilter {
         throws IOException {
 
             responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
-            responseContext.getHeaders().add("Access-Control-Allow-Headers", "X-PINGOTHER, Content-Type");
-            responseContext.getHeaders().add("Access-Control-Allow-Method", "POST, PUT, DELETE");
+            responseContext.getHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            responseContext.getHeaders().add("Access-Control-Allow-Methods", "POST, PUT, DELETE");
+            // Access-Control-Expose-Headers に指定しないと Fetch API で Location が見れなかった
+            responseContext.getHeaders().add("Access-Control-Expose-Headers", "Location");
     }
 }
