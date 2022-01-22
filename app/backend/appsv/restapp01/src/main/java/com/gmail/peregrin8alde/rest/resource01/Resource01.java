@@ -1,9 +1,6 @@
 package com.gmail.peregrin8alde.rest.resource01;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import jakarta.ws.rs.Path;
@@ -23,30 +20,30 @@ import jakarta.ws.rs.DELETE;
 
 import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
+import com.gmail.peregrin8alde.rest.resource01.storage.AbstractStorage;
+import com.gmail.peregrin8alde.rest.resource01.storage.JavaHashMapStorage;
+import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
 
 @Path("resource01")
 @Consumes("application/json")
 @Produces("application/json")
 public class Resource01 {
 
-    private static Map<String, Book> bookStorage = new HashMap<String, Book>();
+    private static AbstractStorage bookStorage = new JavaHashMapStorage();
     private final boolean allowCreateByPutId = false;
 
     /* Create */
     @Path("/books")
     @POST
     public Response createBook(Book book, @Context UriInfo uriInfo) {
-        String id = UUID.randomUUID().toString();
-
-        book.setId(id);
-        bookStorage.put(id, book);
+        Book createdBook = bookStorage.insertOne(book);
 
         /*
          * レスポンスのレスポンスステータスコードが 201
          * （ Location に作成したリソースへのリンクを設定）
          */
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-        uriBuilder.path(id);
+        uriBuilder.path(createdBook.getId());
 
         return Response.created(uriBuilder.build()).build();
     }
@@ -54,23 +51,20 @@ public class Resource01 {
     /* Read */
     @Path("/books")
     @GET
-    public List<Book> readBooks() {
-        /* 一覧は配列で返すこととする */
-        /* 内部で持つ形式とは独立させる */
-        List<Book> books = new ArrayList<Book>();
-        
-        /* 一度に返す数やページ数指定、ソートなどはここで調整 */
-        for (Book book : bookStorage.values()) {
-            books.add(book);
-        }
+    public Response readBooks() {
+        List<Book> books = bookStorage.find();
 
-        return books;
+        return Response.ok().entity(books).type(MediaType.APPLICATION_JSON).build();
     }
 
     @Path("/books/{id}")
     @GET
     public Response readBookById(@PathParam("id") String id, @Context UriInfo uriInfo) {
-        if (bookStorage.get(id) == null) {
+        try {
+            Book book = bookStorage.findOne(id);
+
+            return Response.ok().entity(book).type(MediaType.APPLICATION_JSON).build();
+        } catch (DataNotFoundException e) {
             /* 指定された URI のリソースが存在しないという意味で 404 */
             Status status = Status.NOT_FOUND;
 
@@ -81,8 +75,6 @@ public class Resource01 {
 
             return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
         }
-
-        return Response.ok().entity(bookStorage.get(id)).type(MediaType.APPLICATION_JSON).build();
     }
 
     /* Update */
@@ -91,11 +83,10 @@ public class Resource01 {
     public Response updateBookById(@PathParam("id") String id, Book book, @Context UriInfo uriInfo) {
         book.setId(id);
 
-        if (bookStorage.replace(id, book) == null) {
-            if (allowCreateByPutId) {
-                /* 新規作成を許可する場合 */
-                bookStorage.put(id, book);
+        if (allowCreateByPutId) {
+            /* 新規作成を許可する場合 */
 
+            if (bookStorage.upsertOne(id, book) == null) {
                 /* 新規追加した */
                 /*
                  * レスポンスのレスポンスステータスコードが 201
@@ -105,9 +96,30 @@ public class Resource01 {
 
                 return Response.created(uriBuilder.build()).build();
             } else {
-                /* PUT による新規作成を許可しない場合 */
-                /* id は内部自動生成してるので、 id 指定で見つからないからといって、その id で新規作成されても困る */
+                /* 置換した */
+                /*
+                 * レスポンスのレスポンスステータスコードが 204
+                 * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
+                 */
 
+                return Response.noContent().build();
+            }
+
+        } else {
+            /* PUT による新規作成を許可しない場合 */
+            /* id は内部自動生成してるので、 id 指定で見つからないからといって、その id で新規作成されても困る */
+
+            try {
+                bookStorage.updateOne(id, book);
+
+                /* 置換した */
+                /*
+                 * レスポンスのレスポンスステータスコードが 204
+                 * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
+                 */
+
+                return Response.noContent().build();
+            } catch (DataNotFoundException e) {
                 /* 指定された URI のリソースが存在しないという意味で 404 */
                 Status status = Status.NOT_FOUND;
 
@@ -118,14 +130,6 @@ public class Resource01 {
 
                 return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
             }
-        } else {
-            /* 置換した */
-            /*
-             * レスポンスのレスポンスステータスコードが 204
-             * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
-             */
-
-            return Response.noContent().build();
         }
     }
 
@@ -133,7 +137,11 @@ public class Resource01 {
     @Path("/books/{id}")
     @DELETE
     public Response deleteBookById(@PathParam("id") String id, @Context UriInfo uriInfo) {
-        if (bookStorage.remove(id) == null) {
+        try {
+            bookStorage.deleteOne(id);
+
+            return Response.noContent().build();
+        } catch (DataNotFoundException e) {
             /* 指定された URI のリソースが存在しないという意味で 404 */
             Status status = Status.NOT_FOUND;
 
@@ -144,8 +152,6 @@ public class Resource01 {
 
             return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
         }
-
-        return Response.noContent().build();
     }
 
 }
