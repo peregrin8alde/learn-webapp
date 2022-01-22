@@ -14,7 +14,7 @@ public class JavaHashMapStorage extends AbstractStorage {
     private Map<String, Book> bookStorage;
 
     public JavaHashMapStorage() {
-        bookStorage = new HashMap<String, Book>(); 
+        bookStorage = new HashMap<String, Book>();
     }
 
     /* Create */
