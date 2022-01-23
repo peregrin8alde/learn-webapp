@@ -19,6 +19,9 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.DELETE;
 
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
 import com.gmail.peregrin8alde.rest.resource01.storage.AbstractStorage;
@@ -26,6 +29,7 @@ import com.gmail.peregrin8alde.rest.resource01.storage.JavaHashMapStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.LocalFileSystemStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageException;
+
 
 @Path("resource01")
 @Consumes("application/json")
@@ -37,15 +41,20 @@ public class Resource01 {
 
     private final boolean allowCreateByPutId = false;
 
+    /* 設定 */
+    private Config config;
+    
     /* ストレージ */
     /* DB への接続プールなどの状態維持はストレージクラス側で調整 */
     private AbstractStorage bookStorage;
 
     public Resource01() {
-        final boolean dummy = false;
+        config = ConfigProvider.getConfig();
+
+        String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storageType", String.class);
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
-        if (dummy) {
+        if (storageType.equals("dummy")) {
             bookStorage = dummyStorage;
         } else {
             bookStorage = new LocalFileSystemStorage();

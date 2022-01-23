@@ -1,0 +1,37 @@
+= MicroProfile
+
+マイクロサービスアーキテクチャ向けに Enterprise Java を最適化した仕様。
+
+* https://microprofile.io/
+* https://github.com/eclipse/microprofile
+
+以下のものが含まれる（バージョン 4.1 時点）。
+
+参考 : https://wiki.eclipse.org/MicroProfile/Implementation[実装]
+
+* Open API 2.0
+* Open Tracing 2.0
+* Type Safe Rest Client 2.0
+* Config 2.0
+* Fault Tolerance 3.0
+* JWT Auth 1.2
+* Metrics 3.0
+* Health 3.1
+* CDI 2.0
+* JSON-P 1.1
+* JSON-B 1.0
+* JAX-RS 2.1
+
+.https://github.com/eclipse/microprofile/tree/4.1#maven-bill-of-materials-pom[Maven の POM]
+[source,xml]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.eclipse.microprofile</groupId>
+        <artifactId>microprofile</artifactId>
+        <version>4.1</version>
+        <type>pom</type>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+----
