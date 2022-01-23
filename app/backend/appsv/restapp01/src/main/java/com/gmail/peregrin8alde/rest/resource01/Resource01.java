@@ -29,8 +29,24 @@ import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundExc
 @Produces("application/json")
 public class Resource01 {
 
-    private static AbstractStorage bookStorage = new JavaHashMapStorage();
+    // サーバー側で状態を維持するのは REST と言えないため、 あくまで動作確認用
+    private static JavaHashMapStorage dummyStorage = new JavaHashMapStorage();
+
     private final boolean allowCreateByPutId = false;
+
+    /* ストレージ */
+    private AbstractStorage bookStorage;
+    
+    public Resource01() {
+        final boolean dummy = true;
+
+        /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
+        if (dummy) {
+            bookStorage = dummyStorage;
+        } else {
+
+        }
+    }
 
     /* Create */
     @Path("/books")
