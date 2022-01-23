@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilderException;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.GET;
@@ -22,7 +23,9 @@ import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
 import com.gmail.peregrin8alde.rest.resource01.storage.AbstractStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.JavaHashMapStorage;
+import com.gmail.peregrin8alde.rest.resource01.storage.LocalFileSystemStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
+import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageException;
 
 @Path("resource01")
 @Consumes("application/json")
@@ -35,16 +38,17 @@ public class Resource01 {
     private final boolean allowCreateByPutId = false;
 
     /* ストレージ */
+    /* DB への接続プールなどの状態維持はストレージクラス側で調整 */
     private AbstractStorage bookStorage;
-    
+
     public Resource01() {
-        final boolean dummy = true;
+        final boolean dummy = false;
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
         if (dummy) {
             bookStorage = dummyStorage;
         } else {
-
+            bookStorage = new LocalFileSystemStorage();
         }
     }
 
@@ -52,25 +56,38 @@ public class Resource01 {
     @Path("/books")
     @POST
     public Response createBook(Book book, @Context UriInfo uriInfo) {
-        Book createdBook = bookStorage.insertOne(book);
+        try {
+            Book createdBook = bookStorage.insertOne(book);
 
-        /*
-         * レスポンスのレスポンスステータスコードが 201
-         * （ Location に作成したリソースへのリンクを設定）
-         */
-        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-        uriBuilder.path(createdBook.getId());
+            /*
+             * レスポンスのレスポンスステータスコードが 201
+             * （ Location に作成したリソースへのリンクを設定）
+             */
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+            uriBuilder.path(createdBook.getId());
 
-        return Response.created(uriBuilder.build()).build();
+            return Response.created(uriBuilder.build()).build();
+        } catch (StorageException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
+        }
     }
 
     /* Read */
     @Path("/books")
     @GET
     public Response readBooks() {
-        List<Book> books = bookStorage.find();
+        try {
+            List<Book> books = bookStorage.find();
 
-        return Response.ok().entity(books).type(MediaType.APPLICATION_JSON).build();
+            return Response.ok().entity(books).type(MediaType.APPLICATION_JSON).build();
+        } catch (StorageException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
+        }
+
     }
 
     @Path("/books/{id}")
@@ -90,6 +107,10 @@ public class Resource01 {
                     UUID.randomUUID().toString(), "not found book", uriBuilder.build().toString());
 
             return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
+        } catch (StorageException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
         }
     }
 
@@ -97,35 +118,33 @@ public class Resource01 {
     @Path("/books/{id}")
     @PUT
     public Response updateBookById(@PathParam("id") String id, Book book, @Context UriInfo uriInfo) {
-        book.setId(id);
+        try {
+            book.setId(id);
 
-        if (allowCreateByPutId) {
-            /* 新規作成を許可する場合 */
+            if (allowCreateByPutId) {
+                /* 新規作成を許可する場合 */
 
-            if (bookStorage.upsertOne(id, book) == null) {
-                /* 新規追加した */
-                /*
-                 * レスポンスのレスポンスステータスコードが 201
-                 * （ Location に作成したリソースへのリンクを設定）
-                 */
-                UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+                if (bookStorage.upsertOne(id, book) == null) {
+                    /* 新規追加した */
+                    /*
+                     * レスポンスのレスポンスステータスコードが 201
+                     * （ Location に作成したリソースへのリンクを設定）
+                     */
+                    UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
 
-                return Response.created(uriBuilder.build()).build();
+                    return Response.created(uriBuilder.build()).build();
+                } else {
+                    /* 置換した */
+                    /*
+                     * レスポンスのレスポンスステータスコードが 204
+                     * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
+                     */
+
+                    return Response.noContent().build();
+                }
             } else {
-                /* 置換した */
-                /*
-                 * レスポンスのレスポンスステータスコードが 204
-                 * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
-                 */
-
-                return Response.noContent().build();
-            }
-
-        } else {
-            /* PUT による新規作成を許可しない場合 */
-            /* id は内部自動生成してるので、 id 指定で見つからないからといって、その id で新規作成されても困る */
-
-            try {
+                /* PUT による新規作成を許可しない場合 */
+                /* id は内部自動生成してるので、 id 指定で見つからないからといって、その id で新規作成されても困る */
                 bookStorage.updateOne(id, book);
 
                 /* 置換した */
@@ -133,19 +152,30 @@ public class Resource01 {
                  * レスポンスのレスポンスステータスコードが 204
                  * （ 更新成功という情報があれば充分とみなして 200 は使わない方針とする）
                  */
-
                 return Response.noContent().build();
-            } catch (DataNotFoundException e) {
-                /* 指定された URI のリソースが存在しないという意味で 404 */
-                Status status = Status.NOT_FOUND;
-
-                /* エラー情報を JSON にしてレスポンスボディで返却 */
-                UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-                ErrorInfo errorInfo = new ErrorInfo(status.getStatusCode(),
-                        UUID.randomUUID().toString(), "not found book", uriBuilder.build().toString());
-
-                return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
             }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
+        } catch (UriBuilderException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
+        } catch (DataNotFoundException e) {
+            /* 指定された URI のリソースが存在しないという意味で 404 */
+            Status status = Status.NOT_FOUND;
+
+            /* エラー情報を JSON にしてレスポンスボディで返却 */
+            UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+            ErrorInfo errorInfo = new ErrorInfo(status.getStatusCode(),
+                    UUID.randomUUID().toString(), "not found book", uriBuilder.build().toString());
+
+            return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
+        } catch (StorageException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
         }
     }
 
@@ -167,6 +197,10 @@ public class Resource01 {
                     UUID.randomUUID().toString(), "not found book", uriBuilder.build().toString());
 
             return Response.status(status).entity(errorInfo).type(MediaType.APPLICATION_JSON).build();
+        } catch (StorageException e) {
+            e.printStackTrace();
+
+            return Response.serverError().build();
         }
     }
 
