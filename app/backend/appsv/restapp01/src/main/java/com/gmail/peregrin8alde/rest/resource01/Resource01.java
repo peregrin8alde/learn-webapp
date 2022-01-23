@@ -21,7 +21,10 @@ import jakarta.ws.rs.DELETE;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.spi.ConfigBuilder;
+import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 
+import com.gmail.peregrin8alde.rest.config.CustomFileConfigSource;
 import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
 import com.gmail.peregrin8alde.rest.resource01.storage.AbstractStorage;
@@ -29,7 +32,6 @@ import com.gmail.peregrin8alde.rest.resource01.storage.JavaHashMapStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.LocalFileSystemStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageException;
-
 
 @Path("resource01")
 @Consumes("application/json")
@@ -40,16 +42,20 @@ public class Resource01 {
     private static JavaHashMapStorage dummyStorage = new JavaHashMapStorage();
 
     private final boolean allowCreateByPutId = false;
+    private final String configFile = "/config/restapp01.properties";
 
     /* 設定 */
     private Config config;
-    
+
     /* ストレージ */
     /* DB への接続プールなどの状態維持はストレージクラス側で調整 */
     private AbstractStorage bookStorage;
 
     public Resource01() {
-        config = ConfigProvider.getConfig();
+        // https://download.eclipse.org/microprofile/microprofile-config-2.0/apidocs/
+        ConfigProviderResolver resolver = ConfigProviderResolver.instance();
+        ConfigBuilder builder = resolver.getBuilder();
+        config = builder.addDefaultSources().withSources(new CustomFileConfigSource(configFile)).build();
 
         String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storageType", String.class);
 

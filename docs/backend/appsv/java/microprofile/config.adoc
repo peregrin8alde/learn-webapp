@@ -54,6 +54,73 @@ OS によっては環境変数で `_` 以外の記号を使えないため、 `_
 
 参考 : https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#default_configsources.env.mapping
 
-`ConfigSource` や `ConfigSourceProvider` クラスを実装して `/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSource` や
-`/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSourceProvider` リソースファイルに登録することで、 DB テーブルなど好きな
-ソースを独自に利用させることができる。
+`ConfigSource` や `ConfigSourceProvider` インターフェースを実装して `/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSource` や
+`/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSourceProvider` リソースファイルに登録（パッケージ名まで含めたクラス名を記述）
+することで、 DB テーブルなど好きなソースを独自に利用させることができる。
+`ConfigSource` で単一のソースを登録するか、 `ConfigSourceProvider` を介してソースを登録するかのどちらかであり、両方の方法で登録することはできない。
+
+.https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#custom_configsources[DB から取得する例]
+[source,java]
+----
+public class CustomDbConfigSource implements ConfigSource {
+
+    @Override
+    public int getOrdinal() {
+        return 112;
+    }
+
+    @Override
+    public Set<String> getPropertyNames() {
+        return readPropertyNames();
+    }
+
+    @Override
+    public Map<String, String> getProperties() {
+        return readPropertiesFromDb();
+    }
+
+    @Override
+    public String getValue(String key) {
+        return readPropertyFromDb(key);
+    }
+
+    @Override
+    public String getName() {
+        return "customDbConfig";
+    }
+
+}
+----
+
+.https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#_custom_configsources_via_configsourceprovider[クラスパスに存在する全ての sampleconfig.yaml から取得する例]
+[source,java]
+----
+public class ExampleYamlConfigSourceProvider
+        implements org.eclipse.microprofile.config.spi.ConfigSourceProvider {
+    @Override
+    public List<ConfigSource> getConfigSources(ClassLoader forClassLoader) {
+        List<ConfigSource> configSources = new ArrayList<>();
+
+        Enumeration<URL> yamlFiles
+            = forClassLoader.getResources("sampleconfig.yaml");
+        while (yamlFiles.hasMoreElements()) {
+            configSources.add(new SampleYamlConfigSource(yamlFiles.nextElement()));
+        }
+        return configSources;
+    }
+}
+----
+
+現状、 `/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSource` への登録での動作（ ServiceLoader を
+利用したパターン）が上手くいってないため、 `ConfigBuilder` を使って自分でソースを指定して利用している。
+（そもそも、 `ConfigSourceProvider` を使わない場合、 `ConfigSource` のコンストラクタにはどうやって情報を渡す？）
+
+https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#configprovider
+
+[source,java]
+----
+ConfigProviderResolver resolver = ConfigProviderResolver.instance();
+ConfigBuilder builder = resolver.getBuilder();
+
+Config config = builder.addDefaultSources().withSources(mySource).withConverters(myConverter).build();
+----
