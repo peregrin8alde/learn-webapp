@@ -10,15 +10,19 @@
 
 .https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#_rationale[設定例]
 ====
+[source,toml]
+----
 com.acme.myproject.someserver.url = http://some.server/some/endpoint
 com.acme.myproject.someserver.port = 9085
 com.acme.myproject.someserver.active = true
 com.acme.other.stuff.name = Karl
 com.acme.myproject.notify.onerror=karl@mycompany,sue@mcompany
 some.library.own.config=some value
+----
 ====
 
 .https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#_simple_programmatic_example[設定利用例]
+====
 [source,java]
 ----
 public class ConfigUsageSample {
@@ -36,6 +40,7 @@ public class ConfigUsageSample {
     }
 }
 ----
+====
 
 == ConfigSource
 
@@ -49,7 +54,7 @@ public class ConfigUsageSample {
 . Environment variables (default ordinal=300).
 . A ConfigSource for each property file `META-INF/microprofile-config.properties` found on the classpath. (default ordinal = 100).
 
-OS によっては環境変数で `_` 以外の記号を使えないため、 `_` 以外の記号を `_` に変換後、大文字に統一してからマッチするかどうかの
+OS によっては環境変数で `+_+` 以外の記号を使えないため、 `+_+` 以外の記号を `+_+` に変換後、大文字に統一してからマッチするかどうかの
 判定が行われる。
 
 参考 : https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#default_configsources.env.mapping
@@ -61,6 +66,7 @@ OS によっては環境変数で `_` 以外の記号を使えないため、 `_
 
 .https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#custom_configsources[DB から取得する例]
 [source,java]
+====
 ----
 public class CustomDbConfigSource implements ConfigSource {
 
@@ -91,8 +97,10 @@ public class CustomDbConfigSource implements ConfigSource {
 
 }
 ----
+====
 
 .https://download.eclipse.org/microprofile/microprofile-config-2.0/microprofile-config-spec-2.0.html#_custom_configsources_via_configsourceprovider[クラスパスに存在する全ての sampleconfig.yaml から取得する例]
+====
 [source,java]
 ----
 public class ExampleYamlConfigSourceProvider
@@ -110,6 +118,7 @@ public class ExampleYamlConfigSourceProvider
     }
 }
 ----
+====
 
 現状、 `/META-INF/services/org.eclipse.microprofile.config.spi.ConfigSource` への登録での動作（ ServiceLoader を
 利用したパターン）が上手くいってないため、 `ConfigBuilder` を使って自分でソースを指定して利用している。
