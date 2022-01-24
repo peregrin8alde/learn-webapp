@@ -20,7 +20,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.DELETE;
 
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 
