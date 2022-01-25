@@ -21,6 +21,10 @@ public class JavaHashMapStorage extends AbstractStorage {
     public Book insertOne(Book book) {
         String id = UUID.randomUUID().toString();
 
+        /* 上書き不可 */
+        // 存在したらエラー
+
+        /* 新規作成 */
         book.setId(id);
         bookStorage.put(id, book);
 

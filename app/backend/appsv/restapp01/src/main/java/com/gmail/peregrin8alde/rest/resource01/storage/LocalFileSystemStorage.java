@@ -47,6 +47,10 @@ public class LocalFileSystemStorage extends AbstractStorage {
     public Book insertOne(Book book) throws StorageException {
         String id = UUID.randomUUID().toString();
 
+        /* 上書き不可 */
+        // 存在したらエラー
+
+        /* 新規作成 */
         // https://docs.oracle.com/javase/tutorial/essential/io/file.html
         Path file = Paths.get(baseDir + "/" + id + ".json");
         try (BufferedWriter writer = Files.newBufferedWriter(file)) {
@@ -119,7 +123,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
             /* 存在することを確認できない場合 */
             throw new DataNotFoundException("data not found, id : " + id);
         }
-        
+
         try (BufferedWriter writer = Files.newBufferedWriter(file)) {
             book.setId(id);
             jsonb.toJson(book, writer);
@@ -152,7 +156,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
             Files.delete(file);
         } catch (NoSuchFileException x) {
             throw new DataNotFoundException("data not found, id : " + id);
-        }  catch (IOException e) {
+        } catch (IOException e) {
             System.err.format("IOException: %s%n", e);
 
             throw new StorageException();
