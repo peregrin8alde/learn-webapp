@@ -1,0 +1,184 @@
+= Jakarta EE におけるデータベースの利用
+
+ここでは、サーバー全体での設定ではなくアプリ単体での設定を行う。
+
+* https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a82[2.6. Database]
+* https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a2009[5.19. Default Data Source]
+* https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#jdbc-api[2.7.6. JDBC™ API]
+* https://jakarta.ee/specifications/platform/9/jakarta-platform-spec-9.html#a1688[5.18.3. DataSource Resource Definition]
+
+.各デプロイメント記述子（ web / enterprise bean / application client / application ）の `<data-source>` 要素で定義する例
+[source,xml]
+====
+----
+<data-source>
+  <description>Sample DataSource definition</description>
+  <name>java:app/MyDataSource</name>
+  <class-name>com.example.MyDataSource</class-name>
+  <server-name>myserver.com</server-name>
+  <port-number>6689</port-number>
+  <database-name>myDatabase</database-name>
+  <user>lance</user>
+  <password>secret</password>
+  <property>
+    <name>Property1</name>
+    <value>10</value>
+  </property>
+  <property>
+    <name>Property2</name>
+    <value>20</value>
+  </property>
+  <login-timeout>0</login-timeout>
+  <transactional>false</transactional>
+  <isolation-level>TRANSACTION_READ_COMMITTED</isolation-level>
+  <initial-pool-size>0</initial-pool-size>
+  <max-pool-size>30</max-pool-size>
+  <min-pool-size>20</min-pool-size>
+  <max-idle-time>0</max-idle-time>
+  <max-statements>50</max-statements>
+</data-source>
+----
+====
+
+.DataSourceDefinition アノテーションで定義する例
+[source,java]
+====
+----
+  @DataSourceDefinition(
+     name="java:app/MyDataSource",
+     className="com.example.MyDataSource",
+     portNumber=6689,
+     serverName="myserver.com",
+     user="lance",
+     password="secret")
+----
+====
+
+.DataSource の利用例
+[source,java]
+====
+----
+  @Stateless
+  public class MySessionBean {
+    @Resource(lookup = "java:app/MyDataSource")
+    DataSource myDB;
+    ...
+  }
+----
+====
+
+== PostgreSQL への接続
+
+* https://jdbc.postgresql.org/[JDBC の HP]
+* https://jdbc.postgresql.org/documentation/head/index.html[JDBC ドキュメント]
+** https://jdbc.postgresql.org/documentation/head/datasource.html[Chapter 11. Connection Pools and Data Sources]
+
+.JDBC のダウンロード
+[source,shell]
+----
+curl -LO https://jdbc.postgresql.org/download/postgresql-42.3.1.jar
+----
+
+* アプリケーションサーバーは通常 PostgreSQL の `ConnectionPoolDataSource` 実装を参照するが、
+アプリケーションコンポーネントコードではアプリケーションサーバーが提供する `DataSource` 実装を取得する。
+* PostgreSQL の `DataSource` 実装には `org.postgresql.ds.PGSimpleDataSource` / `org.postgresql.ds.PGPoolingDataSource` の２種類があるが、
+`PGPoolingDataSource` は非推奨。
+
+設定可能なパラメタは以下。
+
+[quote, The PostgreSQL JDBC Interface, 'https://jdbc.postgresql.org/documentation/head/ds-cpds.html#ds-cpds-props[Table 11.1. ConnectionPoolDataSource Configuration Properties]']
+____
+[options="header,autowidth",stripes=hover]
+|===
+|Property |Type |Description
+
+|serverName
+|STRING
+|PostgreSQL™ database server host name
+
+|databaseName
+|STRING
+|PostgreSQL™ database name
+
+|portNumber
+|INT
+|TCP port which the PostgreSQL™ database server is listening on (or 0 to use the default port)
+
+|user
+|STRING
+|User used to make database connections
+
+|password
+|STRING
+|Password used to make database connections
+
+|ssl
+|BOOLEAN
+|If `true`, use SSL encrypted connections (default `false`)
+
+|sslfactory
+|STRING
+|Custom `javax.net.ssl.SSLSocketFactory` class name (see the section called [“Custom SSLSocketFactory”](ssl-factory.html))
+
+|defaultAutoCommit
+|BOOLEAN
+|Whether connections should have autocommit enabled or disabled when they are supplied to the caller. The default is `false`, to disable autocommit. 
+
+|===
+____
+
+.Tomcat における接続利用例
+[source,java]
+====
+----
+import javax.naming.*;
+import javax.sql.*;
+import java.sql.*;
+public class DBTest 
+{
+
+    String foo = "Not Connected";
+    int bar = -1;
+
+    public void init() 
+    {
+        try
+        {
+            Context ctx = new InitialContext();
+            if(ctx == null )
+                throw new Exception("Boom - No Context");
+
+            // /jdbc/postgres is the name of the resource above 
+            DataSource ds = (DataSource)ctx.lookup("java:comp/env/jdbc/postgres");
+
+            if (ds != null) 
+            {
+                Connection conn = ds.getConnection();
+
+                if(conn != null) 
+                {
+                    foo = "Got Connection "+conn.toString();
+                    Statement stmt = conn.createStatement();
+                    ResultSet rst = stmt.executeQuery("select id, foo, bar from testdata");
+
+                    if(rst.next())
+                    {
+                        foo=rst.getString(2);
+                        bar=rst.getInt(3);
+                    }
+                    conn.close();
+                }
+            }
+        }
+        catch(Exception e) 
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public String getFoo() { return foo; }
+
+    public int getBar() { return bar;}
+}
+----
+====

@@ -27,6 +27,7 @@ import com.gmail.peregrin8alde.rest.config.CustomFileConfigSource;
 import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.model.ErrorInfo;
 import com.gmail.peregrin8alde.rest.resource01.storage.AbstractStorage;
+import com.gmail.peregrin8alde.rest.resource01.storage.DatabaseStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.JavaHashMapStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.LocalFileSystemStorage;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
@@ -59,10 +60,12 @@ public class Resource01 {
         String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storageType", String.class);
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
-        if (storageType.equals("dummy")) {
-            bookStorage = dummyStorage;
-        } else {
+        if (storageType.equals("file")) {
             bookStorage = new LocalFileSystemStorage();
+        } if (storageType.equals("db")) {
+            bookStorage = new DatabaseStorage();
+        } else {
+            bookStorage = dummyStorage;
         }
     }
 

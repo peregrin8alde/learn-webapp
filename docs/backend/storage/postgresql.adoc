@@ -1,0 +1,70 @@
+= PostgreSQL
+
+* https://www.postgresql.org/
+
+== Docker
+
+* https://hub.docker.com/_/postgres
+
+.サンプルをベースにした設定ファイルの生成
+[source,shell]
+----
+mkdir -p conf
+
+docker run \
+  -i \
+  -u 1000:1000 \
+  --rm \
+  -v $PWD/conf:/sample \
+  postgres \
+    bash -c 'cp /usr/share/postgresql/${PG_MAJOR}/*.sample /sample/'
+
+cp conf/postgresql.conf.sample conf/postgresql.conf
+cp conf/pg_hba.conf.sample conf/pg_hba.conf
+
+sed -i -e "s/@authcomment@//g" conf/pg_hba.conf
+sed -i -e "s/@remove-line-for-nolocal@//g" conf/pg_hba.conf
+sed -i -e "s/@authmethodlocal@/trust/g" conf/pg_hba.conf
+sed -i -e "s/@authmethodhost@/trust/g" conf/pg_hba.conf
+
+tee -a conf/pg_hba.conf <<"EOS"
+
+# all trust
+host all all all trust
+EOS
+----
+
+[source,shell]
+----
+mkdir -p data
+
+docker run \
+  -d \
+  --name postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e PGDATA=/var/lib/postgresql/data/pgdata \
+  -v $(pwd)/data:/var/lib/postgresql/data \
+  -v "$PWD/conf/postgresql.conf":/etc/postgresql/postgresql.conf \
+  -v "$PWD/conf/pg_hba.conf":/etc/postgresql/pg_hba.conf \
+  postgres \
+    -c 'config_file=/etc/postgresql/postgresql.conf' \
+    -c 'hba_file=/etc/postgresql/pg_hba.conf'
+
+docker network create postgres_nw
+docker network connect postgres_nw postgres
+
+docker run -it --rm --network postgres_nw postgres psql -h postgres -U postgres
+----
+
+== 操作例
+
+* https://www.postgresql.jp/document/13/html/app-psql.html[psql]
+* https://www.postgresql.jp/document/13/html/sql-commands.html[SQLコマンド]
+
+.データベース／テーブルの作成
+[source,shell]
+----
+psql -h postgres -U postgres -c "CREATE DATABASE testdb TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'C' LC_CTYPE = 'C';"
+
+psql -h postgres -U postgres -d testdb -c "CREATE TABLE books (id varchar(256) PRIMARY KEY, title varchar(1024));"
+----

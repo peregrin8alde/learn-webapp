@@ -73,6 +73,27 @@ http://localhost:8080
 * 8080 - HTTP listener
 * 6900 - Datagrid's Hazelcast port
 
+==== Jar の追加
+
+* https://docs.payara.fish/community/docs/documentation/payara-micro/adding-jars.html[Adding Third-Party JARs to a Micro Instance]
+
+[source,shell]
+----
+mkdir libs
+
+docker run \
+  -it \
+  --rm \
+  -p 8080:8080 \
+  -p 6900:6900 \
+  -v "$PWD/webapps":/opt/payara/deployments \
+  -v "$PWD/libs":/payara-libs \
+  payara/micro:5.2021.10-jdk11 \
+    --addLibs /payara-libs/ \
+    --deploy /opt/payara/deployments/myapplication.war
+----
+
+
 == トラブルシューティング
 
 * 以下のエラーが発生
