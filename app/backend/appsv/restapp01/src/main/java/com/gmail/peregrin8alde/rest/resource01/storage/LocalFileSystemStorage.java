@@ -61,7 +61,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 
     /* Read */
     public List<Book> find() throws StorageException {
@@ -92,7 +92,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 
     public Book findOne(String id) throws StorageException {
         Path file = Paths.get(baseDir + "/" + id + ".json");
@@ -110,7 +110,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 
     /* Update */
     public void updateOne(String id, Book book) throws StorageException {
@@ -128,7 +128,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 
     public Book upsertOne(String id, Book book) throws StorageException {
         Path file = Paths.get(baseDir + "/" + id + ".json");
@@ -142,7 +142,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 
     /* Delete */
     public void deleteOne(String id) throws StorageException {
@@ -157,5 +157,5 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
             throw new StorageException();
         }
-    };
+    }
 }

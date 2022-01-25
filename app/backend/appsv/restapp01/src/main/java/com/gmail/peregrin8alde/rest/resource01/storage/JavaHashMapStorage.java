@@ -25,7 +25,7 @@ public class JavaHashMapStorage extends AbstractStorage {
         bookStorage.put(id, book);
 
         return book;
-    };
+    }
 
     /* Read */
     public List<Book> find() {
@@ -37,7 +37,7 @@ public class JavaHashMapStorage extends AbstractStorage {
         }
 
         return books;
-    };
+    }
 
     public Book findOne(String id) throws DataNotFoundException {
         Book book = bookStorage.get(id);
@@ -47,7 +47,7 @@ public class JavaHashMapStorage extends AbstractStorage {
         }
 
         return book;
-    };
+    }
 
     /* Update */
     public void updateOne(String id, Book book) throws DataNotFoundException {
@@ -57,14 +57,14 @@ public class JavaHashMapStorage extends AbstractStorage {
 
         book.setId(id);
         bookStorage.put(id, book);
-    };
+    }
 
     public Book upsertOne(String id, Book book) {
         book.setId(id);
         bookStorage.put(id, book);
 
         return book;
-    };
+    }
 
     /* Delete */
     public void deleteOne(String id) throws DataNotFoundException {
@@ -73,5 +73,5 @@ public class JavaHashMapStorage extends AbstractStorage {
         }
 
         bookStorage.remove(id);
-    };
+    }
 }
