@@ -4,6 +4,7 @@ mkdir -p "$PWD/webapps"
 mkdir -p "$PWD/config"
 mkdir -p "$PWD/storage"
 mkdir -p "$PWD/libs"
+mkdir -p "$PWD/logs"
 
 docker run \
   -it \
@@ -15,9 +16,12 @@ docker run \
   -v "$PWD/config":/config \
   -v "$PWD/storage":/storage \
   -v "$PWD/libs":/payara-libs \
+  -v "$PWD/logs":/logs \
   --network postgres_nw \
   payara/micro:5.2021.10-jdk11 \
     --deploymentDir /opt/payara/deployments \
-    --addLibs /payara-libs/
+    --addLibs /payara-libs/ \
+    --logToFile /logs/payara-server.log
+
 
 exit 0
