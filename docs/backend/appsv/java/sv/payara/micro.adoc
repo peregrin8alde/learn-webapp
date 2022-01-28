@@ -1,0 +1,45 @@
+= Payara Micro
+
+== Docker
+
+https://docs.payara.fish/community/docs/documentation/ecosystem/docker-images/micro-image-overview.html
+
+[source,shell]
+----
+mkdir webapps
+
+docker run \
+  -it \
+  --rm \
+  -p 8080:8080 \
+  -p 6900:6900 \
+  -v "$PWD/webapps":/opt/payara/deployments \
+  payara/micro:5.2021.10-jdk11
+----
+
+http://localhost:8080
+
+ポートの意味は以下
+
+* 8080 - HTTP listener
+* 6900 - Datagrid's Hazelcast port
+
+通常の java での起動時に付ける `--deploy` などのオプションも追記可能。
+
+== コマンドラインオプション
+
+https://docs.payara.fish/community/docs/documentation/payara-micro/appendices/cmd-line-opts.html[Payara Micro Command Line Options]
+
+* デプロイ
+** https://docs.payara.fish/community/docs/documentation/payara-micro/deploying/deploy-cmd-line.html[Deploying Applications From the Command Line]
+** `--deploy <file-path>[:<context-path]` : 特定アプリだけのデプロイ
+** `--deploydir <directory-path>` : ディレクトリ指定
+* 設定
+** https://docs.payara.fish/community/docs/documentation/payara-micro/configuring/config-cmd-line.html[Configuring an Instance from the Command Line]
+** 必要に応じて各種オプションを指定
+* ログ
+** https://docs.payara.fish/community/docs/documentation/payara-micro/logging-to-file.html[Logging to a file]
+** `--logtofile <file-path>` : ログ出力先ファイルパス
+* Jar の追加
+** https://docs.payara.fish/community/docs/documentation/payara-micro/adding-jars.html[Adding Third-Party JARs to a Micro Instance]
+** `--addlibs <file or directory path>` : ディレクトリ指定
