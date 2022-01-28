@@ -42,7 +42,7 @@ public class Resource01 {
     private static JavaHashMapStorage dummyStorage = new JavaHashMapStorage();
 
     private final boolean allowCreateByPutId = false;
-    private final String configFile = "/config/restapp01.properties";
+    private final String configFile = "/config/restapp01/restapp01.properties";
 
     /* 設定 */
     private Config config;
@@ -57,12 +57,13 @@ public class Resource01 {
         ConfigBuilder builder = resolver.getBuilder();
         config = builder.addDefaultSources().withSources(new CustomFileConfigSource(configFile)).build();
 
-        String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storageType", String.class);
+        String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.type", String.class);
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
         if (storageType.equals("file")) {
-            bookStorage = new LocalFileSystemStorage();
-        } if (storageType.equals("db")) {
+            String rootDir = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.file.rootdir", String.class);
+            bookStorage = new LocalFileSystemStorage(rootDir);
+        } else if (storageType.equals("db")) {
             bookStorage = new DatabaseStorage();
         } else {
             bookStorage = dummyStorage;

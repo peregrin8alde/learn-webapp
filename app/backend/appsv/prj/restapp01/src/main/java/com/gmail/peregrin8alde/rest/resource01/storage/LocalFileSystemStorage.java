@@ -22,11 +22,17 @@ import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageExceptio
 
 public class LocalFileSystemStorage extends AbstractStorage {
 
-    private final String baseDir = "/storage";
+    private String baseDir;
 
     private Jsonb jsonb;
 
     public LocalFileSystemStorage() {
+        this("/storage/restapp01");
+    }
+
+    public LocalFileSystemStorage(String baseDir) {
+        this.baseDir = baseDir;
+
         // https://docs.oracle.com/javase/tutorial/essential/io/dirs.html
         try {
             Files.createDirectories(Paths.get(baseDir));
