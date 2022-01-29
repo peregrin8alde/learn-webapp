@@ -24,3 +24,38 @@ docker run \
 ----
 
 http://localhost:80
+
+== ログ
+
+https://httpd.apache.org/docs/2.4/en/logs.html
+
+* エラー出力
++
+[source,text]
+----
+# エラーレベル
+LogLevel warn
+
+# 標準エラー出力
+ErrorLog /proc/self/fd/2
+
+# ファイル出力
+ErrorLog "logs/error_log"
+----
+* ログ出力
++
+[source,text]
+----
+# フォーマット定義
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+
+# 標準出力
+## フォーマット定義利用
+CustomLog /proc/self/fd/1 common
+## フォーマットを直接記述
+CustomLog /proc/self/fd/1 "%h %l %u %t \"%r\" %>s %b"
+
+# ファイル出力
+CustomLog "logs/access_log" combined
+----
