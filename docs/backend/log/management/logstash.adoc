@@ -1,0 +1,136 @@
+= Logstash
+
+* https://www.elastic.co/jp/logstash/
+* https://www.elastic.co/guide/en/logstash/current/index.html
+
+ライセンスに注意が必要？
+
+== 設定ファイル
+
+Logstash には２種類の設定ファイルが存在する。
+参考 : https://www.elastic.co/guide/en/logstash/current/config-setting-files.html[Logstash Configuration Files]
+
+パイプライン構成ファイル::
+  パイプライン処理を定義する。
+設定ファイル::
+  サーバーの起動や実行を制御する各種オプションを指定する。
+
+構成ファイルファイルは以下の構造をしている。
+
+https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html[Structure of a config file]
+
+[source]
+----
+# This is a comment. You should use comments to describe
+# parts of your configuration.
+# https://www.elastic.co/guide/en/logstash/current/input-plugins.html
+input {
+  ...
+}
+
+# https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
+filter {
+  ...
+}
+
+# https://www.elastic.co/guide/en/logstash/current/output-plugins.html
+output {
+  ...
+}
+----
+
+各セクションにはプラグインとそのオプションを指定する。
+
+[source]
+----
+input {
+  file {
+    path => "/var/log/messages"
+    type => "syslog"
+  }
+
+  file {
+    path => "/var/log/apache/access.log"
+    type => "apache"
+  }
+}
+----
+
+== Running Logstash on Docker
+
+https://www.elastic.co/guide/en/logstash/current/docker.html
+
+各サーバーが別マシンで動いている想定で、それぞれ個別にエージェントを起動する。
+
+* `/usr/share/logstash/pipeline/` にマウントすることでパイプライン構成ファイルを配置する。
+** 配置しない場合、 https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[Beats input plugin]
+を入力、 `stdout` を出力とする最小構成で実行される（入力側として `Elastic Beats` が必要）。
+
+[source,shell]
+----
+mkdir -p "$PWD/pipeline"
+
+tee "$PWD/pipeline/sample01.conf" <<'EOF' >> /dev/null
+input {
+  # https://www.elastic.co/guide/en/logstash/current/plugins-inputs-file.html
+  file {
+    path => "/logs/input/type1/**/*.log"
+    type => "type1"
+  }
+
+  file {
+    path => "/logs/input/type2/**/*.log"
+    type => "type2"
+  }
+}
+
+output {
+  # https://www.elastic.co/guide/en/logstash/current/plugins-outputs-file.html
+  file {
+    path => "/logs/output/%{host}/%{type}-%{+YYYY-MM-dd}.json"
+  }
+}
+EOF
+
+mkdir -p "$PWD/logs"
+
+docker run \
+  --name logstash \
+  --rm \
+  -it \
+  -v "$PWD/pipeline/":/usr/share/logstash/pipeline/ \
+  -v "$PWD/logs":/logs \
+  docker.elastic.co/logstash/logstash:7.16.3
+----
+
+[source,shell]
+----
+mkdir -p "$PWD/logs/input/type1"
+echo "type1-aaa" >> "$PWD/logs/input/type1/data01.log"
+
+mkdir -p "$PWD/logs/input/type2"
+echo "type2-aaa" >> "$PWD/logs/input/type2/data01.log"
+----
+
+[source,shell]
+----
+$ ls "$PWD/logs/output"
+1040a1e3af5e
+
+$ ls "$PWD/logs/output/1040a1e3af5e"
+type1-2022-01-29.json  type2-2022-01-29.json
+
+$ cat "$PWD/logs/output/1040a1e3af5e/type1-2022-01-29.json"
+{"message":"type1-aaa","@timestamp":"2022-01-29T11:25:49.342Z","path":"/logs/input/type1/data01.log","type":"type1","host":"1040a1e3af5e","@version":"1"}
+
+$ cat "$PWD/logs/output/1040a1e3af5e/type2-2022-01-29.json"
+{"message":"type2-aaa","@timestamp":"2022-01-29T11:30:34.279Z","path":"/logs/input/type2/data01.log","type":"type2","host":"1040a1e3af5e","@version":"1"}
+----
+
+
+== トラブルシューティング
+
+* 以下のメッセージが出力される。
++
+`Unable to retrieve license information from license server`
+** 
