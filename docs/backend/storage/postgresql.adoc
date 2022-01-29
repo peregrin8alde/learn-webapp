@@ -34,21 +34,27 @@ host all all all trust
 EOS
 ----
 
+起動時にユーザを指定する場合は工夫が必要。（ Docker イメージの説明の `Arbitrary --user Notes` を参照）
+
 [source,shell]
 ----
-mkdir -p data
+mkdir -p "$PWD/data"
 
 docker run \
-  -d \
   --name postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e PGDATA=/var/lib/postgresql/data/pgdata \
-  -v $(pwd)/data:/var/lib/postgresql/data \
+  --rm \
+  -d \
+  --user "$(id -u):$(id -g)" \
+  -v /etc/passwd:/etc/passwd:ro \
+  -v "$PWD/data":/var/lib/postgresql/data \
   -v "$PWD/conf/postgresql.conf":/etc/postgresql/postgresql.conf \
   -v "$PWD/conf/pg_hba.conf":/etc/postgresql/pg_hba.conf \
+  -e POSTGRES_PASSWORD=postgres \
+  -e PGDATA=/var/lib/postgresql/data/pgdata \
   postgres \
     -c 'config_file=/etc/postgresql/postgresql.conf' \
     -c 'hba_file=/etc/postgresql/pg_hba.conf'
+
 
 docker network create postgres_nw
 docker network connect postgres_nw postgres
@@ -68,3 +74,19 @@ psql -h postgres -U postgres -c "CREATE DATABASE testdb TEMPLATE = template0 ENC
 
 psql -h postgres -U postgres -d testdb -c "CREATE TABLE books (id varchar(256) PRIMARY KEY, title varchar(1024));"
 ----
+
+== ログ
+
+https://www.postgresql.jp/document/13/html/runtime-config-logging.html[19.8. エラー報告とログ取得]
+
+[source,toml]
+----
+log_destination = 'csvlog'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_file_mode = 0600
+log_rotation_size = 10MB
+----
+
+`log_directory` は `$PGDATA` からの相対パスで指定している。
