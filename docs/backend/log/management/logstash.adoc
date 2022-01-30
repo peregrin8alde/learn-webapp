@@ -56,6 +56,9 @@ input {
 }
 ----
 
+設定ファイルをリロードしたい場合、自動リロードを有効にしておく（ `--config.reload.automatic` ）か `SIGHUP` を送信する。
+参考 : https://www.elastic.co/guide/en/logstash/current/reloading-config.html[Reloading the Config File]
+
 == Running Logstash on Docker
 
 https://www.elastic.co/guide/en/logstash/current/docker.html
@@ -68,6 +71,14 @@ https://www.elastic.co/guide/en/logstash/current/docker.html
 
 [source,shell]
 ----
+# デフォルト設定ファイルのコピー
+mkdir -p "$PWD/config"
+
+docker run --rm -it \
+  -v "$PWD/config/":/config/ \
+  docker.elastic.co/logstash/logstash:7.16.3 \
+    sh -c 'cp -rf /usr/share/logstash/config/* /config/'
+
 mkdir -p "$PWD/pipeline"
 
 tee "$PWD/pipeline/sample01.conf" <<'EOF' >> /dev/null
@@ -85,9 +96,15 @@ input {
 }
 
 output {
-  # https://www.elastic.co/guide/en/logstash/current/plugins-outputs-file.html
-  file {
-    path => "/logs/output/%{host}/%{type}-%{+YYYY-MM-dd}.json"
+  if [type] == "type1" {
+    file {
+      path => "/logs/output/%{host}/%{type}-%{+YYYY-MM-dd}.json"
+    }
+  } else if [type] == "type2" {
+    # https://www.elastic.co/guide/en/logstash/current/plugins-outputs-file.html
+    file {
+      path => "/logs/output/%{host}/%{type}-%{+YYYY-MM-dd}.json"
+    }
   }
 }
 EOF
@@ -96,9 +113,11 @@ mkdir -p "$PWD/logs"
 
 docker run \
   --name logstash \
+  --hostname logstash.sv \
   --rm \
   -it \
   -v "$PWD/pipeline/":/usr/share/logstash/pipeline/ \
+  -v "$PWD/config/":/usr/share/logstash/config/ \
   -v "$PWD/logs":/logs \
   docker.elastic.co/logstash/logstash:7.16.3
 ----
@@ -127,10 +146,122 @@ $ cat "$PWD/logs/output/1040a1e3af5e/type2-2022-01-29.json"
 {"message":"type2-aaa","@timestamp":"2022-01-29T11:30:34.279Z","path":"/logs/input/type2/data01.log","type":"type2","host":"1040a1e3af5e","@version":"1"}
 ----
 
+== 外部サーバ上のファイルログ収集
+
+Logstash と同じ Elastic 製の軽量データシッパー `Beats` の `Filebeat` を使うのが連携しやすい。
+
+* https://www.elastic.co/guide/en/beats/libbeat/current/index.html[Beats Platform Reference]
+* https://www.elastic.co/guide/en/beats/filebeat/7.16/filebeat-installation-configuration.html[Filebeat overview]
+* https://www.elastic.co/guide/en/logstash/current/filebeat-modules.html[Working with Filebeat Modules]
+** `ingest pipelines` は `Elasticsearch` の機能であるため、今回は使わない。
+
+=== Filebeat インストール
+
+ログ収集対象のマシン環境にできるだけ依存しないようにしたいため、 バイナリモジュールを配置して利用することにする。
+
+[source,shell]
+----
+# 任意の場所
+mkdir -p "$PWD/pkg"
+
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.16.3-linux-x86_64.tar.gz
+tar xzvf filebeat-7.16.3-linux-x86_64.tar.gz -C "$PWD/pkg" --strip-components 1
+
+"$PWD/pkg/filebeat" --path.home "$PWD/pkg" --path.config "$PWD/pkg" -c filebeat.yml modules list
+----
+
+=== 設定
+
+Logstash 側は入力プラグインで https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[Beats input plugin] を
+利用する。
+
+[source,shell]
+----
+tee "$PWD/pipeline/beats-input.conf" <<'EOF' >> /dev/null
+input {
+  beats {
+    port => 5044
+    type => "beats"
+  }
+}
+
+output {
+  if [type] == "beats" {
+    file {
+      path => "/logs/output/%{[host][name]}/%{type}-%{+YYYY-MM-dd}.json"
+    }
+  }
+}
+EOF
+
+docker run \
+  --name logstash \
+  --hostname logstash.sv \
+  --rm \
+  -it \
+  -p 5044:5044 \
+  -v "$PWD/pipeline/":/usr/share/logstash/pipeline/ \
+  -v "$PWD/config/":/usr/share/logstash/config/ \
+  -v "$PWD/logs":/logs \
+  docker.elastic.co/logstash/logstash:7.16.3
+----
+
+Filebeat 側は ファイルからの入力と Logstash への出力を行う。
+
+.設定ファイルの作成
+[source,shell]
+----
+mkdir -p "$PWD/config"
+
+cp "$PWD/pkg/filebeat.yml" "$PWD/config/filebeat.yml"
+cp "$PWD/pkg/filebeat.reference.yml" "$PWD/config/filebeat.reference.yml"
+
+cp "$PWD/pkg/filebeat.yml" "$PWD/config/filebeat-logstash.yml"
+----
+
+.設定ファイル `filebeat-logstash.yml` の内容
+[source,yml]
+----
+filebeat.inputs:
+- type: filestream
+  enabled: true
+  paths: ${input.filestream.paths}
+filebeat.config.modules:
+  path: ${path.home}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: 1
+output.logstash:
+processors:
+----
+
+.起動
+[source,shell]
+----
+"$PWD/pkg/filebeat" \
+  --path.home "$PWD/pkg" \
+  --path.config "$PWD/config" \
+  -c filebeat-logstash.yml \
+  -E 'input.filestream.paths=["'$PWD'/data/input/**/*.log"]' \
+  -E "output.logstash.hosts=['localhost:5044']" \
+  run
+----
+
+.動作確認
+[source,shell]
+----
+mkdir -p "$PWD/data/input/type1"
+echo "type1-aaa" >> "$PWD/data/input/type1/data01.log"
+
+mkdir -p "$PWD/data/input/type2"
+echo "type2-aaa" >> "$PWD/data/input/type2/data01.log"
+----
 
 == トラブルシューティング
 
 * 以下のメッセージが出力される。
 +
 `Unable to retrieve license information from license server`
-** 
+** デフォルトの `logstash.yml` で記述されている `xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]` を
+コメントアウトすれば発生しなくなるようだが、このパラメタの説明が `logstash.yml` の説明に見つからない。
+* 起動に時間がかかる。
