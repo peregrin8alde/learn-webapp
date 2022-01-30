@@ -7,6 +7,7 @@ mkdir -p "$PWD/logs"
 docker run \
   --name logstash \
   --hostname logstash.sv \
+  --network logstash_nw \
   --rm \
   -it \
   -p 5044:5044 \

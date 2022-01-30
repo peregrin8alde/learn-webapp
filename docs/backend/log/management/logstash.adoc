@@ -157,8 +157,15 @@ Logstash と同じ Elastic 製の軽量データシッパー `Beats` の `Filebe
 
 === Filebeat インストール
 
-ログ収集対象のマシン環境にできるだけ依存しないようにしたいため、 バイナリモジュールを配置して利用することにする。
+ログ収集対象のマシン環境にできるだけ依存しないようにしたいため、 以下のいずれかとする。
 
+* Docker がインストールされていない場合、バイナリモジュールを配置して利用
+* Docker がインストールされている場合、 Docker イメージを利用
+** https://www.elastic.co/guide/en/beats/filebeat/7.16/running-on-docker.html[Run Filebeat on Docker]
+** ライセンスに注意
+
+* バイナリモジュールを配置して利用
++
 [source,shell]
 ----
 # 任意の場所
@@ -168,6 +175,19 @@ curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.16.3
 tar xzvf filebeat-7.16.3-linux-x86_64.tar.gz -C "$PWD/pkg" --strip-components 1
 
 "$PWD/pkg/filebeat" --path.home "$PWD/pkg" --path.config "$PWD/pkg" -c filebeat.yml modules list
+----
+* Docker イメージを利用
++
+[source,shell]
+----
+docker run \
+  --name=filebeat \
+  --hostname filebeat \
+  -it \
+  --rm \
+  -v "$PWD/pkg/filebeat.yml":/usr/share/filebeat/filebeat.yml:ro \
+  docker.elastic.co/beats/filebeat:7.16.3 \
+    filebeat modules list
 ----
 
 === 設定
@@ -194,9 +214,12 @@ output {
 }
 EOF
 
+docker network create logstash_nw
+
 docker run \
   --name logstash \
   --hostname logstash.sv \
+  --network logstash_nw \
   --rm \
   -it \
   -p 5044:5044 \
@@ -236,6 +259,8 @@ processors:
 ----
 
 .起動
+** Docker を使わない場合
++
 [source,shell]
 ----
 "$PWD/pkg/filebeat" \
@@ -245,6 +270,26 @@ processors:
   -E 'input.filestream.paths=["'$PWD'/data/input/**/*.log"]' \
   -E "output.logstash.hosts=['localhost:5044']" \
   run
+----
+** Docker を使う場合
++
+[source,shell]
+----
+docker run \
+  --name=filebeat \
+  --hostname filebeat \
+  --network logstash_nw \
+  -d \
+  --rm \
+  -v "$PWD/config/":/config:ro \
+  -v "$PWD/data/":/data:ro \
+  docker.elastic.co/beats/filebeat:7.16.3 \
+    filebeat \
+    --path.config "/config" \
+    -c filebeat-logstash.yml \
+    -E 'input.filestream.paths=["/data/input/**/*.log"]' \
+    -E "output.logstash.hosts=['logstash:5044']" \
+    run
 ----
 
 .動作確認
