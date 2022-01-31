@@ -1,0 +1,75 @@
+#!/bin/sh
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
+PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
+
+BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../../../.." && pwd)
+
+mkdir -p "$SCRIPT_DIR/config"
+mkdir -p "$SCRIPT_DIR/data"
+
+# WEB サーバー
+LOGDIR_WEBSV="${BASE_DIR}/frontend/logs"
+
+docker run \
+  --name=filebeat_websv \
+  --hostname filebeat.websv \
+  --network logstash_nw \
+  -u root \
+  -d \
+  --rm \
+  -v "$SCRIPT_DIR/config/":/config:ro \
+  -v "$LOGDIR_WEBSV":/logs:ro \
+  docker.elastic.co/beats/filebeat:7.16.3 \
+    filebeat \
+      --strict.perms=false \
+      --path.config "/config" \
+      -c filebeat-logstash.yml \
+      -E 'input.filestream.paths=["/logs/*_log"]' \
+      -E "output.logstash.hosts=['logstash:5044']" \
+      run
+
+# AP サーバー
+LOGDIR_APPSV="${BASE_DIR}/backend/appsv/deploy/logs"
+
+docker run \
+  --name=filebeat_appsv \
+  --hostname filebeat.appsv \
+  --network logstash_nw \
+  -u root \
+  -d \
+  --rm \
+  -v "$SCRIPT_DIR/config/":/config:ro \
+  -v "$LOGDIR_APPSV":/logs:ro \
+  docker.elastic.co/beats/filebeat:7.16.3 \
+    filebeat \
+      --strict.perms=false \
+      --path.config "/config" \
+      -c filebeat-logstash.yml \
+      -E 'input.filestream.paths=["/logs/payara-server.log.0"]' \
+      -E "output.logstash.hosts=['logstash:5044']" \
+      run
+
+# DB サーバー
+LOGDIR_DB="${BASE_DIR}/backend/storage/db/postgres/data/pgdata/log"
+
+docker run \
+  --name=filebeat_db \
+  --hostname filebeat.db \
+  --network logstash_nw \
+  -u root \
+  -d \
+  --rm \
+  -v "$SCRIPT_DIR/config/":/config:ro \
+  -v "$LOGDIR_DB":/logs:ro \
+  docker.elastic.co/beats/filebeat:7.16.3 \
+    filebeat \
+      --strict.perms=false \
+      --path.config "/config" \
+      -c filebeat-logstash.yml \
+      -E 'input.filestream.paths=["/logs/*"]' \
+      -E "output.logstash.hosts=['logstash:5044']" \
+      run
+
+
+exit 0

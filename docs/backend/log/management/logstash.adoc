@@ -183,12 +183,19 @@ tar xzvf filebeat-7.16.3-linux-x86_64.tar.gz -C "$PWD/pkg" --strip-components 1
 docker run \
   --name=filebeat \
   --hostname filebeat \
+  -u root \
   -it \
   --rm \
   -v "$PWD/pkg/filebeat.yml":/usr/share/filebeat/filebeat.yml:ro \
   docker.elastic.co/beats/filebeat:7.16.3 \
-    filebeat modules list
+    filebeat \
+      --strict.perms=false \
+      modules list
 ----
+** 設定ファイルの権限に注意
+*** https://www.elastic.co/guide/en/beats/libbeat/current/config-file-permissions.html[Config file ownership and permissions]
+*** `--strict.perms=false` 指定で無視できる。
+*** 収集対象のファイルの権限に関係なくアクセスするために Docker コンテナを root ユーザーで起動した際に権限の違いを無視など
 
 === 設定
 
@@ -279,17 +286,19 @@ docker run \
   --name=filebeat \
   --hostname filebeat \
   --network logstash_nw \
+  -u root \
   -d \
   --rm \
   -v "$PWD/config/":/config:ro \
   -v "$PWD/data/":/data:ro \
   docker.elastic.co/beats/filebeat:7.16.3 \
     filebeat \
-    --path.config "/config" \
-    -c filebeat-logstash.yml \
-    -E 'input.filestream.paths=["/data/input/**/*.log"]' \
-    -E "output.logstash.hosts=['logstash:5044']" \
-    run
+      --strict.perms=false
+      --path.config "/config" \
+      -c filebeat-logstash.yml \
+      -E 'input.filestream.paths=["/data/input/**/*.log"]' \
+      -E "output.logstash.hosts=['logstash:5044']" \
+      run
 ----
 
 .動作確認
