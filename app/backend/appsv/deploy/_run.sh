@@ -17,7 +17,7 @@ docker run \
   -v "$PWD/storage":/storage \
   -v "$PWD/libs":/payara-libs \
   -v "$PWD/logs":/logs \
-  --network postgres_nw \
+  --network kong-net \
   payara/micro:5.2021.10-jdk11 \
     --deploymentDir /opt/payara/deployments \
     --addLibs /payara-libs/ \

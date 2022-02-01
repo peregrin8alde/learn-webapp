@@ -1,0 +1,113 @@
+= Kong Gateway (OSS)
+
+* https://docs.konghq.com/gateway/[Kong Gateway]
+
+== Install and Run
+
+=== Docker
+
+* https://docs.konghq.com/gateway/2.7.x/install-and-run/docker/[Install Kong Gateway on Docker]
+* https://hub.docker.com/_/kong[Docker イメージ]
+* https://docs.konghq.com/gateway/2.7.x/install-and-run/docker/#install-gateway-in-db-less-mode[Install Gateway in DB-less mode]
+
+. Create a Docker network
++
+[source,shell]
+----
+docker network create kong-net
+----
+. Create a Docker volume
++
+[source,shell]
+----
+# 作成
+docker volume create kong-vol
+
+# 詳細確認
+docker volume inspect kong-vol
+----
+** `inspect` 実行時に表示される `MountPoint` を確認しておく。
++
+[source,shell]
+----
+[
+    {
+        "CreatedAt": "2022-01-31T19:59:59+09:00",
+        "Driver": "local",
+        "Labels": {},
+        "Mountpoint": "/var/lib/docker/volumes/kong-vol/_data",
+        "Name": "kong-vol",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+----
+. 宣言型設定ファイルの準備
+** 詳細は https://docs.konghq.com/gateway/2.7.x/reference/db-less-and-declarative-config/#declarative-configuration-format[Declarative configuration format]
+** 先の `MountPoint` 上に保存。
+*** ここでは、 `/var/lib/docker/volumes/kong-vol/_data/kong.yml` とする。
+** 設定例
++
+[source,shell]
+----
+sudo tee /var/lib/docker/volumes/kong-vol/_data/kong.yml <<'EOF'
+_format_version: "2.1"
+_transform: true
+
+services:
+- name: my-service
+  url: http://payara:8080/restapp01/webapi/resource01
+  routes:
+  - name: my-route
+    paths:
+    - /restapp01
+
+consumers:
+- username: my-user
+EOF
+----
+. 起動
++
+[source,shell]
+----
+docker run \
+  -d \
+  --rm \
+  --name kong \
+  --network=kong-net \
+  -v "kong-vol:/usr/local/kong/declarative" \
+  -e "KONG_DATABASE=off" \
+  -e "KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml" \
+  -e "KONG_PROXY_ACCESS_LOG=/dev/stdout" \
+  -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout" \
+  -e "KONG_PROXY_ERROR_LOG=/dev/stderr" \
+  -e "KONG_ADMIN_ERROR_LOG=/dev/stderr" \
+  -e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
+  -p 8000:8000 \
+  -p 8443:8443 \
+  -p 127.0.0.1:8001:8001 \
+  -p 127.0.0.1:8444:8444 \
+  kong:2.7
+----
+. 起動確認
++
+[source,shell]
+----
+curl -i http://localhost:8001
+
+curl -i http://localhost:8001/services
+----
+. API の実行
++
+[source,shell]
+----
+curl -X POST \
+  -i \
+  -H "Content-Type: application/json" \
+  --data '{"title":"book01"}' \
+  "http://localhost:8000/restapp01/books"
+
+curl -X GET \
+  -i \
+  "http://localhost:8000/restapp01/books"
+----
