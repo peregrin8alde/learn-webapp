@@ -62,6 +62,13 @@ docker network connect postgres_nw postgres
 docker run -it --rm --network postgres_nw postgres psql -h postgres -U postgres
 ----
 
+`/docker-entrypoint-initdb.d` 配下に以下のいずれかの拡張子のファイルを格納しておくと、初期処理として実行してくれる。
+（データディレクトリが空の初期状態のときのみ）
+
+- `*.sql`
+- `*.sql.gz`
+- `*.sh`
+
 == 操作例
 
 * https://www.postgresql.jp/document/13/html/app-psql.html[psql]

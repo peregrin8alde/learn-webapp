@@ -20,7 +20,7 @@ import com.gmail.peregrin8alde.rest.resource01.model.Book;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.DataNotFoundException;
 import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageException;
 
-@DataSourceDefinition(name = "java:app/MyDataSource", className = "org.postgresql.ds.PGSimpleDataSource", portNumber = 5432, serverName = "postgres", databaseName = "testdb", user = "postgres", password = "postgres")
+@DataSourceDefinition(name = "java:app/MyDataSource", className = "org.postgresql.ds.PGSimpleDataSource", portNumber = 5432, serverName = "webapp_db", databaseName = "testdb", user = "postgres", password = "postgres")
 
 public class DatabaseStorage extends AbstractStorage {
     // 有効になってない？

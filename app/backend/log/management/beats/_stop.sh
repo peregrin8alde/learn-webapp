@@ -1,8 +1,8 @@
 #!/bin/sh
 
-docker stop filebeat_websv
-docker stop filebeat_appsv
-docker stop filebeat_db
+docker stop webapp_filebeat_websv
+docker stop webapp_filebeat_appsv
+docker stop webapp_filebeat_db
 
 
 

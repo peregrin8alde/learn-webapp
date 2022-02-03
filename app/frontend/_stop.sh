@@ -1,5 +1,6 @@
 #!/bin/sh
 
-docker stop webapp-websv
+docker stop webapp_websv
+
 
 exit 0

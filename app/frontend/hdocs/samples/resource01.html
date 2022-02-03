@@ -9,9 +9,10 @@
     <h1>Sample page</h1>
 
     <script>
+        let base_url = 'http://localhost:8000/restapp01/books'
 
         function fetchPost(form) {
-            const url = 'http://localhost:8080/restapp01/webapi/resource01/books';
+            const url = base_url;
 
             let data = {};
             data['title'] = form.elements.title.value;
@@ -38,7 +39,7 @@
         }
 
         function fetchGetAll(form) {
-            const url = 'http://localhost:8080/restapp01/webapi/resource01/books';
+            const url = base_url;
 
             fetch(url).then(function (response) {
                 // 通常の関数で表現したパターン
@@ -52,7 +53,7 @@
 
         function fetchGetById(form) {
             const id = form.elements.id.value;
-            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+            const url = base_url + '/' + id;
 
             fetch(url)
                 .then(response => response.json())
@@ -66,7 +67,7 @@
 
         function fetchPutById(form) {
             const id = form.elements.id.value;
-            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+            const url = base_url + '/' + id;
 
             let data = {};
             data['id'] = id;
@@ -89,7 +90,7 @@
 
         function fetchDeleteById(form) {
             const id = form.elements.id.value;
-            const url = 'http://localhost:8080/restapp01/webapi/resource01/books/' + id;
+            const url = base_url + '/' + id;
 
             fetch(url, {
                 method: 'DELETE',

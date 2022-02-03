@@ -5,6 +5,12 @@ PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
 BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../../../.." && pwd)
 
+DOCKER_NETWORK="webapp-net"
+
+if [ -z $(docker network ls | grep -w "${DOCKER_NETWORK}" | awk '{print $2}') ]; then
+  docker network create "${DOCKER_NETWORK}"
+fi
+
 mkdir -p "$SCRIPT_DIR/config"
 mkdir -p "$SCRIPT_DIR/data"
 
@@ -12,9 +18,9 @@ mkdir -p "$SCRIPT_DIR/data"
 LOGDIR_WEBSV="${BASE_DIR}/frontend/logs"
 
 docker run \
-  --name=filebeat_websv \
-  --hostname filebeat.websv \
-  --network logstash_nw \
+  --name=webapp_filebeat_websv \
+  --network "${DOCKER_NETWORK}" \
+  --hostname webapp.filebeat.websv \
   -u root \
   -d \
   --rm \
@@ -26,16 +32,16 @@ docker run \
       --path.config "/config" \
       -c filebeat-logstash.yml \
       -E 'input.filestream.paths=["/logs/*_log"]' \
-      -E "output.logstash.hosts=['logstash:5044']" \
+      -E "output.logstash.hosts=['webapp_logstash:5044']" \
       run
 
 # AP サーバー
 LOGDIR_APPSV="${BASE_DIR}/backend/appsv/deploy/logs"
 
 docker run \
-  --name=filebeat_appsv \
-  --hostname filebeat.appsv \
-  --network logstash_nw \
+  --name=webapp_filebeat_appsv \
+  --network "${DOCKER_NETWORK}" \
+  --hostname webapp.filebeat.appsv \
   -u root \
   -d \
   --rm \
@@ -47,16 +53,16 @@ docker run \
       --path.config "/config" \
       -c filebeat-logstash.yml \
       -E 'input.filestream.paths=["/logs/payara-server.log.0"]' \
-      -E "output.logstash.hosts=['logstash:5044']" \
+      -E "output.logstash.hosts=['webapp_logstash:5044']" \
       run
 
 # DB サーバー
 LOGDIR_DB="${BASE_DIR}/backend/storage/db/postgres/data/pgdata/log"
 
 docker run \
-  --name=filebeat_db \
-  --hostname filebeat.db \
-  --network logstash_nw \
+  --name=webapp_filebeat_db \
+  --network "${DOCKER_NETWORK}" \
+  --hostname webapp.filebeat.db \
   -u root \
   -d \
   --rm \
@@ -68,7 +74,7 @@ docker run \
       --path.config "/config" \
       -c filebeat-logstash.yml \
       -E 'input.filestream.paths=["/logs/*"]' \
-      -E "output.logstash.hosts=['logstash:5044']" \
+      -E "output.logstash.hosts=['webapp_logstash:5044']" \
       run
 
 

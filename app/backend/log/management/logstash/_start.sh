@@ -9,21 +9,21 @@ if [ -z $(docker network ls | grep -w "${DOCKER_NETWORK}" | awk '{print $2}') ];
   docker network create "${DOCKER_NETWORK}"
 fi
 
+mkdir -p "$SCRIPT_DIR/pipeline"
+mkdir -p "$SCRIPT_DIR/config"
 mkdir -p "$SCRIPT_DIR/logs"
 
 docker run \
-  --name=webapp_websv \
+  --name=webapp_logstash \
   --network "${DOCKER_NETWORK}" \
-  --hostname webapp.websv \
+  --hostname webapp.logstash \
   --rm \
-  -dit \
-  -p 80:80 \
-  -v "$SCRIPT_DIR/hdocs":/usr/local/apache2/htdocs/ \
-  -v "$SCRIPT_DIR/conf/my-httpd.conf":/usr/local/apache2/conf/httpd.conf \
-  -v "$SCRIPT_DIR/logs":/usr/local/apache2/logs/ \
-  httpd:2.4
-
-echo "http://localhost:80"
+  -d \
+  -p 5044:5044 \
+  -v "$SCRIPT_DIR/pipeline/":/usr/share/logstash/pipeline/ \
+  -v "$SCRIPT_DIR/config/":/usr/share/logstash/config/ \
+  -v "$SCRIPT_DIR/logs":/logs \
+  docker.elastic.co/logstash/logstash:7.16.3
 
 
 exit 0
