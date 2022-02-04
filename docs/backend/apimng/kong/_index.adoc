@@ -192,6 +192,31 @@ curl -i http://localhost:8001
 
 curl -i http://localhost:8001/services
 ----
+. サービス作成
++
+https://docs.konghq.com/gateway/2.7.x/get-started/comprehensive/expose-services/[Expose your Services with Kong Gateway]
++
+[source,shell]
+----
+curl -i -X POST http://localhost:8001/services \
+  --data name=example_service \
+  --data url='http://mockbin.org'
+
+curl -i http://localhost:8001/services
+
+curl -i http://localhost:8001/services/example_service
+----
+. Route 追加
++
+[source,shell]
+----
+curl -i -X POST http://localhost:8001/services/example_service/routes \
+  --data 'paths[]=/mock' \
+  --data name=mocking
+
+curl -i -X GET http://localhost:8000/mock/request
+----
+
 
 不要になったら以下で削除。
 
