@@ -1,4 +1,75 @@
 = Keycloak
 
 * https://www.keycloak.org/[Keycloak]
+* https://www.keycloak.org/documentation[Documentation]
+* https://www.keycloak.org/guides#getting-started[Getting started]
 
+== Get started with Keycloak on Docker
+
+* https://www.keycloak.org/getting-started/getting-started-docker[Get started with Keycloak on Docker]
+* https://github.com/keycloak/keycloak-containers/blob/16.1.1/server/README.md[Keycloak Docker image]
+
+使い方
+
+. 起動
++
+[source,shell]
+----
+docker run \
+  -it \
+  -d \
+  --name keycloak \
+  -p 8080:8080 \
+  -e KEYCLOAK_USER=admin \
+  -e KEYCLOAK_PASSWORD=admin \
+  jboss/keycloak:16.1.1
+----
++
+[NOTE]
+====
+* 公式ドキュメントは Get started のコマンド記載がおかしいため、 Docker image の内容に従う。
+** 例の通りに `start-dev` というオプションを付けると不当なオプションとしてエラーになる。
+** `KEYCLOAK_ADMIN` や `KEYCLOAK_ADMIN_PASSWORD` は有効じゃない。
+====
+. 管理画面へログイン（ `admin` / `admin` ）
++
+http://localhost:8080/auth/admin
+. レルムの作成（ `Add realm` ）
+  Name::
+    `myrealm`
+. ユーザーの作成（ `Add user` ）
+  Details::
+    Username:::
+      `myuser`
+    First Name:::
+      `Foo`
+    Last Name:::
+      `Bar`
+  Credentials::
+    Password:::
+      `mypasswd`
+    Temporary:::
+      `OFF`
+. アカウント画面へログイン（ `myuser` / `mypasswd` ）
++
+http://localhost:8080/auth/realms/myrealm/account
+. クライアントの設定
++
+http://localhost:8080/auth/admin[管理画面] から実施
++
+Client ID::
+  `myclient`
+Client Protocol::
+  `openid-connect`
+Root URL::
+  https://www.keycloak.org/app/
+. クライアントの動作確認
++
+https://www.keycloak.org/app/ にアクセスし、作成した情報でサインイン（ `myuser` / `mypasswd` ）する。
+
+Keycloak URL::
+  http://localhost:8080/auth
+Realm::
+  `myrealm`
+Client::
+  `myclient`
