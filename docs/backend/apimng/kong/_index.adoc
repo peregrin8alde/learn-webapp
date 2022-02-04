@@ -8,7 +8,12 @@
 
 * https://docs.konghq.com/gateway/2.7.x/install-and-run/docker/[Install Kong Gateway on Docker]
 * https://hub.docker.com/_/kong[Docker イメージ]
+
+==== Install Gateway in DB-less mode
+
 * https://docs.konghq.com/gateway/2.7.x/install-and-run/docker/#install-gateway-in-db-less-mode[Install Gateway in DB-less mode]
+
+DB を使わない場合。色々制限がかかるため、あくまで練習用。
 
 . Create a Docker network
 +
@@ -110,4 +115,91 @@ curl -X POST \
 curl -X GET \
   -i \
   "http://localhost:8000/restapp01/books"
+----
+
+==== Install Kong Gateway with a database
+
+* https://docs.konghq.com/gateway/2.7.x/install-and-run/docker/#install-kong-gateway-with-a-database[Install Kong Gateway with a database]
+
+PostgreSQL を使う場合。
+
+. Create a Docker network
++
+[source,shell]
+----
+docker network create kong-net
+----
+. Start a PostgreSQL container
++
+[source,shell]
+----
+docker run \
+  -d \
+  --name kong-database \
+  --network=kong-net \
+  -p 5432:5432 \
+  -e "POSTGRES_USER=kong" \
+  -e "POSTGRES_DB=kong" \
+  -e "POSTGRES_PASSWORD=kongpass" \
+  postgres:9.6
+----
+. Prepare the Kong database
++
+[source,shell]
+----
+docker run \
+  --rm \
+  --network=kong-net \
+  -e "KONG_DATABASE=postgres" \
+  -e "KONG_PG_HOST=kong-database" \
+  -e "KONG_PG_PASSWORD=kongpass" \
+  kong:2.7.0-alpine \
+    kong migrations bootstrap
+----
+. 起動
++
+[source,shell]
+----
+docker run \
+  -d \
+  --name kong-gateway \
+  --network=kong-net \
+  -e "KONG_DATABASE=postgres" \
+  -e "KONG_PG_HOST=kong-database" \
+  -e "KONG_PG_USER=kong" \
+  -e "KONG_PG_PASSWORD=kongpass" \
+  -e "KONG_PROXY_ACCESS_LOG=/dev/stdout" \
+  -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout" \
+  -e "KONG_PROXY_ERROR_LOG=/dev/stderr" \
+  -e "KONG_ADMIN_ERROR_LOG=/dev/stderr" \
+  -e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
+  -p 8000:8000 \
+  -p 8443:8443 \
+  -p 127.0.0.1:8001:8001 \
+  -p 127.0.0.1:8444:8444 \
+  kong:2.7.0-alpine
+----
++
+[IMPORTANT]
+====
+`admin_listen` の設定でどこからでもアクセス可能にしているため、正式な運用時には設定を変更すること。
+====
+. 起動確認
++
+[source,shell]
+----
+curl -i http://localhost:8001
+
+curl -i http://localhost:8001/services
+----
+
+不要になったら以下で削除。
+
+[source,shell]
+----
+docker kill kong-gateway
+docker kill kong-database
+docker container rm kong-gateway
+docker container rm kong-database
+docker network rm kong-net
 ----
