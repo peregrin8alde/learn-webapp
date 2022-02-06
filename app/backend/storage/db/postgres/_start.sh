@@ -5,7 +5,8 @@ PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
 DOCKER_NETWORK="webapp-net"
 
-if [ -z $(docker network ls | grep -w "${DOCKER_NETWORK}" | awk '{print $2}') ]; then
+# --filter は golang の正規表現でフィルタ、 -q は id だけ表示
+if [ -z $(docker network ls --filter name="^${DOCKER_NETWORK}$" -q) ]; then
   docker network create "${DOCKER_NETWORK}"
 fi
 
