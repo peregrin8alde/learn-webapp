@@ -228,3 +228,174 @@ docker container rm kong-gateway
 docker container rm kong-database
 docker network rm kong-net
 ----
+
+== 認証
+
+* https://docs.konghq.com/gateway/2.7.x/configure/auth/[Authentication Reference]
+
+認証プラグインを利用する。
+
+. サービスに対し認証プラグインを適用する。
+. `consumer` を作成する。
+. 作成した consumer に対し、特定の認証方法で利用する認証資格情報を提供する。
+. 各リクエストでその認証資格情報をチェックする。
+
+=== 匿名アクセス
+
+* https://docs.konghq.com/gateway/2.7.x/configure/auth/#anonymous-access[Anonymous Access]
+
+認証済みのアクセスと匿名アクセスの両方を扱うサービスを作成することが可能。
+
+. サービスの作成
++
+[source,shell]
+----
+curl -i -X POST \
+   --url http://localhost:8001/services/ \
+   --data 'name=example-service' \
+   --data 'url=http://mockbin.org/request'
+
+curl -i -X POST \
+   --url http://localhost:8001/services/example-service/routes \
+   --data 'paths[]=/auth-sample'
+----
+. 認証プラグインの設定
++
+ここでは、 https://docs.konghq.com/hub/kong-inc/key-auth/[Key Authentication] プラグインを適用する。
++
+[source,shell]
+----
+curl -i -X POST \
+   --url http://localhost:8001/services/example-service/plugins/ \
+   --data 'name=key-auth'
+----
++
+ここで出力される `id` は後で利用するため記録しておく。
+例 : `ade19eeb-16ef-43a6-9946-5c29044ad546`
+. 認証動作の確認
++
+[source,shell]
+----
+curl -i -X GET \
+   --url http://localhost:8000/auth-sample
+----
++
+[source,shell]
+----
+HTTP/1.1 401 Unauthorized
+...
+
+{
+  "message":"No API key found in request"
+}
+----
+. 匿名コンシューマーの作成
++
+[source,shell]
+----
+curl -i -X POST \
+   --url http://localhost:8001/consumers/ \
+   --data "username=anonymous_users"
+----
++
+ここで出力される `id` は後で利用するため記録しておく。
+例 : `3d4afe40-70dd-4bf3-8c48-b7521f638ef7`
+. 匿名アクセスを可能にする
++
+[source,shell]
+----
+curl -i -X PATCH \
+   --url http://localhost:8001/plugins/ade19eeb-16ef-43a6-9946-5c29044ad546 \
+   --data "config.anonymous=3d4afe40-70dd-4bf3-8c48-b7521f638ef7"
+----
+. 匿名アクセスを確認する
++
+[source,shell]
+----
+curl -i -X GET \
+   --url http://localhost:8000/auth-sample
+----
++
+[source,shell]
+----
+HTTP/1.1 200 OK
+...
+
+{
+  ...
+  "headers": {
+    ...
+    "x-consumer-id": "3d4afe40-70dd-4bf3-8c48-b7521f638ef7",
+    "x-consumer-username": "anonymous_users",
+    "x-anonymous-consumer": "true",
+    ...
+  },
+  ...
+}
+----
+
+認証済みアクセスは以下の方法で確認できる。
+
+https://docs.konghq.com/hub/kong-inc/key-auth/#usage
+
+. Create a Consumer
++
+[source,shell]
+----
+curl -d "username=user123&custom_id=SOME_CUSTOM_ID" http://localhost:8001/consumers/
+----
+. Create a Key
++
+[NOTE]
+====
+キーは API ゲートウェイに自動生成させることを推奨。他システムからの移行時のみ手動作成する。
+====
++
+[source,shell]
+----
+curl -X POST http://localhost:8001/consumers/user123/key-auth
+----
++
+[source,json]
+----
+{"consumer":{"id":"b5a2dae7-06e2-40a8-87da-9ba71dc590e1"},"created_at":1644120063,"tags":null,"ttl":null,"key":"NIO56xEqTISJRcKxJLoL2iuJzZ9ChQYM","id":"d106fde5-3711-4b29-8b2e-2d1368e17518"}
+----
+. Make a Request with the Key
++
+[source,shell]
+----
+# query パラメタで指定する場合
+## `key_in_query` パラメタが `true` （デフォルト）に設定されている場合のみ
+curl -i -X GET \
+   http://localhost:8000/auth-sample?apikey=NIO56xEqTISJRcKxJLoL2iuJzZ9ChQYM
+
+# リクエストボディで指定する場合
+## `key_in_body` パラメタが `true` （デフォルトは `false` ）に設定されている場合のみ
+curl -i -X GET \
+   http://localhost:8000/auth-sample \
+   --data 'apikey: NIO56xEqTISJRcKxJLoL2iuJzZ9ChQYM'
+
+# ヘッダーで指定する場合
+## `key_in_header` パラメタが `true` に（デフォルト）設定されている場合のみ
+curl -i -X GET \
+   http://localhost:8000/auth-sample \
+   -H 'apikey: NIO56xEqTISJRcKxJLoL2iuJzZ9ChQYM'
+----
++
+[source,shell]
+----
+# ヘッダーで指定した場合
+HTTP/1.1 200 OK
+...
+
+{
+  ...
+    "apikey": "NIO56xEqTISJRcKxJLoL2iuJzZ9ChQYM",
+    "x-consumer-id": "b5a2dae7-06e2-40a8-87da-9ba71dc590e1",
+    "x-consumer-custom-id": "SOME_CUSTOM_ID",
+    "x-consumer-username": "user123",
+    ...
+  },
+  ...
+}
+----
