@@ -1,0 +1,14 @@
+= OAuth 2.0 Authentication プラグイン
+
+* https://docs.konghq.com/hub/kong-inc/oauth2/[OAuth 2.0 Authentication]
+
+[NOTE]
+====
+OAuth2 の仕様に従い、このプラグインを使うサービスには HTTPS を使ってアクセスする必要があるため、
+`protocols` を使って HTTPS のみ受け付けるようにルートを設定すること。
+====
+
+このプラグインは、 kong を認証サーバーとして使いたい場合向け？
+kong をクライアントとして使う場合は JWT ？
+
+OAuth 2.0 の各認証グラント（４種類）を使ったフローでの認証レイヤーを追加する。

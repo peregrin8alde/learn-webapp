@@ -1,0 +1,7 @@
+= 認証／認可関連技術
+
+主にシングルサインオン（ SSO ）に関連する技術。
+
+* SAML
+* OAuth2
+* OpenID Connect(OIDC)

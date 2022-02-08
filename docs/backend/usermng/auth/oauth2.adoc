@@ -1,0 +1,87 @@
+= OAuth 2.0
+
+* https://openid-foundation-japan.github.io/rfc6749.ja.html[仕様]
+
+== 登場人物
+
+リソースオーナー (resource owner)::
+  リソースへのアクセスを許可する。人間の場合はエンドユーザーと呼ばれる。 
+リソースサーバー (resource server)::
+  アクセストークンを用いたリソースへのリクエストを受理してレスポンスを返すサーバー。
+クライアント (client)::
+  リソースオーナーの認可を得て、リソースオーナーの代理としてリソースに対するリクエストを行うアプリケーション。
+認可サーバー (authorization server)::
+  リソースオーナーの認証とリソースオーナーからの認可取得が成功した後、アクセストークンをクライアントに発行するサーバー。
+
+[quote, The OAuth 2.0 Authorization Framework,'https://openid-foundation-japan.github.io/rfc6749.ja.html#anchor3[Figure 1: Abstract Protocol Flow]' ]
+____
+[source]
+----
+  +--------+                               +---------------+
+  |        |--(A)- Authorization Request ->|   Resource    |
+  |        |                               |     Owner     |
+  |        |<-(B)-- Authorization Grant ---|               |
+  |        |                               +---------------+
+  |        |
+  |        |                               +---------------+
+  |        |--(C)-- Authorization Grant -->| Authorization |
+  | Client |                               |     Server    |
+  |        |<-(D)----- Access Token -------|               |
+  |        |                               +---------------+
+  |        |
+  |        |                               +---------------+
+  |        |--(E)----- Access Token ------>|    Resource   |
+  |        |                               |     Server    |
+  |        |<-(F)--- Protected Resource ---|               |
+  +--------+                               +---------------+
+----
+____
+
+[upperalpha]
+. クライアントは、リソースオーナーに対して認可を要求する。
+. クライアントは、リソースオーナーの認可を表すクレデンシャルとして「認可グラント」を受け取る。認可グラントには以下の４つのタイプが存在する。
+** 認可コード
+** インプリシット
+** リソースオーナーパスワードクレデンシャル
+** クライアントクレデンシャル
+. クライアントは、認可サーバーに対して「認可グラント」を提示することで「アクセストークン」を要求する。 
+. 認可サーバーは、クライアントを認証し認可グラントの正当性を確認、正当であれば「アクセストークン」を発行する。
+. クライアントは、リソースサーバーに対して「アクセストークン」による認証を含んだリソースのリクエストを行う。
+. リソースサーバーは、「アクセストークン」の正当性を確認し, 正当であればリクエストを受け入れる。
+
+なお、クライアントがリソースオーナーから認可グラントを取得する際には、認可サーバーが仲介を行う方式が望ましい。
+以下は認可コードによる認可フローの例である。
+
+[quote, The OAuth 2.0 Authorization Framework,'https://openid-foundation-japan.github.io/rfc6749.ja.html#grant-code[Figure 3: 認可コード処理フロー]' ]
+____
+[source]
+----
+  +----------+
+  | Resource |
+  |   Owner  |
+  |          |
+  +----------+
+       ^
+       |
+      (B)
+  +----|-----+          Client Identifier      +---------------+
+  |         -+----(A)-- & Redirection URI ---->|               |
+  |  User-   |                                 | Authorization |
+  |  Agent  -+----(B)-- User authenticates --->|     Server    |
+  |          |                                 |               |
+  |         -+----(C)-- Authorization Code ---<|               |
+  +-|----|---+                                 +---------------+
+    |    |                                         ^      v
+   (A)  (C)                                        |      |
+    |    |                                         |      |
+    ^    v                                         |      |
+  +---------+                                      |      |
+  |         |>---(D)-- Authorization Code ---------'      |
+  |  Client |          & Redirection URI                  |
+  |         |                                             |
+  |         |<---(E)----- Access Token -------------------'
+  +---------+       (w/ Optional Refresh Token)
+----
+____
+
+
