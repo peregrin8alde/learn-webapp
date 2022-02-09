@@ -2,6 +2,8 @@
 
 * https://openid-foundation-japan.github.io/rfc6749.ja.html[仕様]
 
+サードパーティ製のアプリケーションが HTTP サービスにアクセスする際の権限の認可を行うためのフレームワーク（仕様規格）。
+
 == 登場人物
 
 リソースオーナー (resource owner)::
@@ -12,6 +14,9 @@
   リソースオーナーの認可を得て、リソースオーナーの代理としてリソースに対するリクエストを行うアプリケーション。
 認可サーバー (authorization server)::
   リソースオーナーの認証とリソースオーナーからの認可取得が成功した後、アクセストークンをクライアントに発行するサーバー。
+  ここで行われる認証についての詳細仕様は決められておらず、そこをカバーしたのが OpenID Connect となる。
+
+認可サーバーとリソースサーバーの間の関係は仕様の範囲外であり、同一サーバーでも良い。
 
 [quote, The OAuth 2.0 Authorization Framework,'https://openid-foundation-japan.github.io/rfc6749.ja.html#anchor3[Figure 1: Abstract Protocol Flow]' ]
 ____
@@ -51,6 +56,8 @@ ____
 
 なお、クライアントがリソースオーナーから認可グラントを取得する際には、認可サーバーが仲介を行う方式が望ましい。
 以下は認可コードによる認可フローの例である。
+ここでの User-Agent は Web ブラウザなどであり、認可サーバーがリソースオーナーに対して認可を求めるための画面に
+リダイレクトされる。そこでリソースオーナーによるサインインなどで認証（誰が認可するか）が行われる。
 
 [quote, The OAuth 2.0 Authorization Framework,'https://openid-foundation-japan.github.io/rfc6749.ja.html#grant-code[Figure 3: 認可コード処理フロー]' ]
 ____
