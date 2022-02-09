@@ -1,0 +1,57 @@
+= OpenID Connect(OIDC)
+
+認可の仕様である OAuth2 に認証の仕様を追加したもの。
+
+* https://openid.net/connect/[公式 HP]
+* https://openid.net/specs/openid-connect-core-1_0.html[Core 仕様]
+
+== 用語
+
+End-User::
+  人間。
+Entity::
+  別個の存在として識別できるもの。 End-User など。
+Claim::
+  Entity ついて断言する情報の一部。
+OpenID Provider (OP)::
+  OAuth 2.0 の認可サーバー。 End-User を認証し、認証イベントと End-User についての Claim を Relying Party に提供することができる。
+Relying Party (RP)::
+  OAuth 2.0 のクライアント。 OpenID Provider からの End-User 認証と Claim を必要とする。
+ID Token::
+  認証イベントについての Claim を含む JSON Web Token (JWT) 。その他の Claim も含む。
+UserInfo Endpoint::
+  保護されたリソース。クライアントがアクセストークンを提示すると、認可グラントに代表されるような End-User についての認可情報を返却する。
+  URL は https でなければならない。
+
+== 概要
+
+[quote, OpenID Connect Core 1.0 incorporating errata set 1,'https://openid.net/specs/openid-connect-core-1_0.html#Overview[Overview]' ]
+____
+[source]
+----
++--------+                                   +--------+
+|        |                                   |        |
+|        |---------(1) AuthN Request-------->|        |
+|        |                                   |        |
+|        |  +--------+                       |        |
+|        |  |        |                       |        |
+|        |  |  End-  |<--(2) AuthN & AuthZ-->|        |
+|        |  |  User  |                       |        |
+|   RP   |  |        |                       |   OP   |
+|        |  +--------+                       |        |
+|        |                                   |        |
+|        |<--------(3) AuthN Response--------|        |
+|        |                                   |        |
+|        |---------(4) UserInfo Request----->|        |
+|        |                                   |        |
+|        |<--------(5) UserInfo Response-----|        |
+|        |                                   |        |
++--------+                                   +--------+
+----
+____
+
+. RP が、 OP に認証（ Authentication ）リクエストを送信する。
+. OP が、 End-User を認証（ Authentication ）し、認可（ Authorization ）を取得する。
+. OP が、  ID Token と（通常は）アクセストークンでレスポンスを返却する。
+. RP が、 アクセストークンを使って UserInfo Endpoint にリクエストを送信できる。
+. UserInfo Endpoint が、 End-User についての Claim を返却する。

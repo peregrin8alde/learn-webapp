@@ -1,0 +1,7 @@
+= OpenID Connect
+
+== OpenID Connect プラグイン
+
+* https://docs.konghq.com/hub/kong-inc/openid-connect/[OpenID Connect]
+
+Kong を OAuth 2.0 のリソースサーバーとして、かつ／または OpenID Connect の Relying Party (RP) として利用することができる。

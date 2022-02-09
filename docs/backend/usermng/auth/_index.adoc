@@ -5,3 +5,4 @@
 * SAML
 * OAuth2
 * OpenID Connect(OIDC)
+** 認可の仕様である OAuth2 に認証の仕様を追加したもの。
