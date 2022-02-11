@@ -1,0 +1,5 @@
+= JSON Web Token (JWT)
+
+* https://datatracker.ietf.org/doc/html/draft-ietf-oauth-json-web-token[仕様]
+* https://openid-foundation-japan.github.io/draft-ietf-oauth-json-web-token-11.ja.html[仕様（日本語）]
+

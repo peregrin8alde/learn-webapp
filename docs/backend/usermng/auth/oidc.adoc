@@ -55,3 +55,69 @@ ____
 . OP が、  ID Token と（通常は）アクセストークンでレスポンスを返却する。
 . RP が、 アクセストークンを使って UserInfo Endpoint にリクエストを送信できる。
 . UserInfo Endpoint が、 End-User についての Claim を返却する。
+
+== ID Token
+
+* https://openid.net/specs/openid-connect-core-1_0.html#IDToken[2.  ID Token]
+
+.クレーム一覧
+iss::
+  必須。
+  レスポンス発行者（ Issuer ）のための発行者識別子。https の URL 。
+  大文字小文字を区別。
+sub::
+  必須。
+  サブジェクト識別子（ Subject ）。 End-User の発行者内で一意かつ再発行されない識別子であり、クライアントが利用する。
+  ASCII で 255 文字以内、大文字小文字を区別。
+aud::
+  必須。
+  ID Token を利用するオーディエンス（ Audience ）（群）。
+  RP の OAuth 2.0 client_id を含まなければならない。その他のオーディエンスの識別子を含む場合もある。
+  一般的には大文字小文字を区別する文字列の配列。オーディエンスが１つの場合、配列ではなく文字列単体。
+exp::
+  必須。
+  ID Token を利用可能な有効期限。
+  UTC の 1970-01-01T0:0:0Z からの経過秒数。
+iat::
+  必須。
+  JWT が発行された時刻。
+  UTC の 1970-01-01T0:0:0Z からの経過秒数。
+auth_time::
+  オプション。 max_age リクエストが行われた場合か、 Essential Claim として auth_time が要求された場合は必須。
+  End-User 認証が発生した時刻。
+  UTC の 1970-01-01T0:0:0Z からの経過秒数。
+nonce::
+  オプション。 認証リクエストに含まれる場合は必須。
+  ID Token とクライアントセッションを関連付けるための文字列。リプレイ攻撃への対策として使用される。
+  クライアントは認証リクエストで設定された値と同じであることを検証する。
+  大文字小文字を区別。
+acr::
+  オプション。 
+  認証コンテキストクラスリファレンス（ Authentication Context Class Reference ）。
+  認証がどんなレベルを満たすものかを示しており、利用する場合は当事者がその意味を合意しておかなければならない。
+  大文字小文字を区別。
+amr::
+  オプション。 
+  認証方法リファレンス（ Authentication Methods References ）。
+  認証方法の識別子の文字列の配列であり、利用する場合は当事者がその意味を合意しておかなければならない。
+  大文字小文字を区別。
+azp::
+  オプション。 
+  認可された RP（ Authorized party ）。 ID Token が発行された当事者であり、存在する場合はこの RP の OAuth 2.0 Client ID を含まなければならない。
+  ID Token の aud が１つであり、それが認可された RP と異なる場合に必要となる。 aud が１つで認可された RP と同じでも含むことがある。
+  大文字小文字を区別。
+
+.参考例
+[source,json]
+----
+  {
+   "iss": "https://server.example.com",
+   "sub": "24400320",
+   "aud": "s6BhdRkqt3",
+   "nonce": "n-0S6_WzA2Mj",
+   "exp": 1311281970,
+   "iat": 1311280970,
+   "auth_time": 1311280969,
+   "acr": "urn:mace:incommon:iap:silver"
+  }
+----
