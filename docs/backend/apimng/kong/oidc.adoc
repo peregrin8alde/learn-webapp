@@ -1,7 +1,172 @@
-= OpenID Connect
-
-== OpenID Connect プラグイン
+= OpenID Connect プラグイン
 
 * https://docs.konghq.com/hub/kong-inc/openid-connect/[OpenID Connect]
 
 Kong を OAuth 2.0 のリソースサーバーとして、かつ／または OpenID Connect の Relying Party (RP) として利用することができる。
+
+== 主要な設定パラメタ
+
+* https://docs.konghq.com/hub/kong-inc/openid-connect/#important-configuration-parameters[Important Configuration Parameters]
+
+.主要なパラメタ一覧
+. まずは唯一の必須パラメタである `config.issuer` を設定する。
++
+OP(IdP) の検出情報であり、 https://openid.net/specs/openid-connect-discovery-1_0.html[discovery endpoint] を持たない場合は
+`realm` や `iss` を指定する。
++
+例） Keycloak のレルム設定画面にある Endpoints に記載されているリンクは以下。 `/.well-known` 以降は定形のため記述不要？
++
+http://localhost:8080/auth/realms/master/.well-known/openid-configuration
+. 次に、使用する認証認可を決定し、 `config.auth_methods` を設定する。
++
+攻撃のリスクを軽減するために、実際に使用するものだけを指定すべき。
+. 大抵の場合は `config.client_id` も必要である。
++
+クライアント認証が必要な場合は `config.client_secret` も指定する必要がある。
+. Google のようなパブリックな OP を使う場合、 オーディエンスに `config.client_id` のみが
+含まれるように `config.audience_required` で制限する。
++
+OP が JWT 標準の `aud` 以外のクレームを使っている場合は `config.audience_claim` も調整する必要がある。
+. Kong を DB-less モード（宣言型設定）で使っている場合、 セッションクッキー認証を行うなら 
+`config.session_secret` を設定する必要がある。
+
+== JSON Web Key Set
+
+* https://docs.konghq.com/hub/kong-inc/openid-connect/#json-web-key-set[JSON Web Key Set]
+
+`private_key_jwt` を指定して OP のエンドポイントと通信する場合、 OP がこのプラグイン用の
+公開鍵を取得するための API として `/openid-connect/jwks` が用意される。
+
+== Keycloak 連携
+
+* https://docs.konghq.com/hub/kong-inc/openid-connect/#keycloak-configuration[Keycloak Configuration]
+
+以下の手順で設定を行う。
+Keycloak の設定は https://docs.konghq.com/assets/images/docs/openid-connect/keycloak.json[download the exported Keycloak configuration] から
+ダウンロードして import しても良い？（実機未確認）
+
+なお、各サーバーは以下で動作しているものとする。
+
+KeyCloak::
+  localhost 上の Docker コンテナ。各コンテナからは `webapp_usermng` でアクセス可能。
+  ポート 8001 を管理用 API 用、 8000 を各サービス用に公開。
+Kong::
+  localhost 上の Docker コンテナ。各コンテナからは `webapp_apimng` でアクセス可能。
+  ポート 8080 を公開。
+
+.Keycloak 設定手順例
+. Kong クライアントの作成
+  Settings::
+    Client ID:::
+      `kong`
+    Client Protocol:::
+      `openid-connect`
+    Root URL:::
+      なし
+    Name:::
+      `Kong Client`
+    Description:::
+      `Kong OpenID Connect Demo`
+    Client Protocol:::
+      `openid-connect`
+    Access Type:::
+      `confidential`
+    Standard Flow Enabled:::
+      `ON`
+    Direct Access Grants Enabled:::
+      `ON`
+    Valid Redirect URIs:::
+      `http://localhost:8000/*`
+      ログイン／ログアウトの後にブラウザからアクセスする先？
+  Credentials::
+    Client Authenticator:::
+      `Signed jwt`
+    Signature Algorithm:::
+      なし
+  Keys::
+    Use JWKS URL:::
+      `ON`
+    JWKS URL:::
+      `http://webapp_apimng:8001/openid-connect/jwks`
+. サービス用クライアントの作成
+  Settings::
+  Settings::
+    Client ID:::
+      `service`
+    Client Protocol:::
+      `openid-connect`
+    Root URL:::
+      なし
+    Name:::
+      `Service Client`
+    Description:::
+      `Kong OpenID Connect Demo Service Client`
+    Client Protocol:::
+      `openid-connect`
+    Access Type:::
+      `confidential`
+    Standard Flow Enabled:::
+      `ON`
+    Direct Access Grants Enabled:::
+      `ON`
+    Valid Redirect URIs:::
+      `http://localhost:8000/*`
+  Credentials::
+    Client Authenticator:::
+      `Client Id and Secret`
+    Secret:::
+      `7IXc5l2SrdqUAhAeOXloVA94kVb2iIK6`
+. ユーザーの作成
+  Details::
+    Username:::
+      `john`
+    User Enabled:::
+      `ON`
+  Credentials::
+    Password:::
+      `doe`
+    Temporary:::
+      `OFF`
+. Keycloak と Kong が同じマシンで動作している場合は `standalone.xml` を編集して
+https 用の 8443 ポートが Kong の TLS proxy 用ポートと被らないようにする。
+ここではコンテナ間通信でしか使わないため不要。
+
+.Kong 設定手順例
+. サービスの作成
++
+[source,shell]
+----
+curl -i -X POST \
+   --url http://localhost:8001/services \
+   --data 'name=openid-connect' \
+   --data 'url=http://httpbin.org/anything'
+
+curl -i -X PUT \
+   --url http://localhost:8001/routes/openid-connect \
+   --data 'paths[]=/'
+----
+. プラグインの作成
++
+[source,shell]
+----
+curl -X POST http://localhost:8001/routes/openid-connect/plugins \
+    --data "name=openid-connect"  \
+    --data "config.issuer=http://webapp_usermng:8080/auth/realms/master" \
+    --data "config.client_id=kong" \
+    --data "config.client_auth=private_key_jwt"
+----
++
+[CAUTION]
+====
+以下のエラーメッセージが出力される。
+[source]
+----
+schema violation (name: plugin 'openid-connect' not enabled; add it to the 'plugins' configuration property)
+----
+
+`KONG_PLUGINS=bundled,openid-connect` を設定していないせいだと思われるが、
+`/usr/local/share/lua/5.1/kong/plugins` 配下に `openid-connect` が存在しないため、
+どのみちエラーとなる。（ `OpenID Connect` プラグインが plus ライセンス以上のため？）
+====
+
+
