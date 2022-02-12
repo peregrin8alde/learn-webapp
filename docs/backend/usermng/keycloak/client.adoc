@@ -1,0 +1,120 @@
+= クライアントアプリケーションの作成
+
+* https://www.keycloak.org/docs/16.1/securing_apps/index.html[Securing Applications and Services Guide]
+
+最新の 17.0 で記述が異なるので注意。ここでは 16.1 を使う。
+
+クライアント用アダプタを使って開発する。
+
+== OpenID Connect
+
+=== JavaScript (client-side)
+
+* https://www.keycloak.org/docs/16.1/securing_apps/index.html#_javascript_adapter[2.2. JavaScript adapter]
+
+Keycloak サーバーの `/auth/js/keycloak.js` から直接取得可能。
+前もってダウンロードする場合は以下のように Keycloak サーバーにアクセスする。
+
+[source,html]
+----
+curl -LO http://localhost:8080/auth/js/keycloak.js
+----
+
+.利用方法例
+. レルムの作成（ `Add realm` ）
++
+例） `myrealm`
+. ユーザーの作成（ `Add user` ）
++
+例） `myuser` / `mypasswd`
+. クライアントの作成
++
+* public なクライアントにする必要がある。
+* `Valid Redirect URIs` / `Web Origins` にアクセスを制御したいサービスに合わせた設定が必要。
+Settings::
+  Client ID:::
+    `myclient`
+  Client Protocol:::
+    `openid-connect`
+  Access Type:::
+    `public`
+  Valid Redirect URIs:::
+    ** `http://localhost/*`
+    ** `http://mockbin.org/*`
+  Web Origins:::
+    ** `*`
+Installation::
+  Format Option:::
+    `Keycloak OIDC JSON`
++
+`Installation` で取得した `keycloak.json` を HTML と同じ場所に配置しておく。
+. アプリの作成
++
+未ログイン時はログインさせる場合は 'login-required' を指定し、ログイン済みの場合のみ
+認証する場合は `check-sso` を指定する。
++
+[source,html]
+----
+<html>
+
+<head>
+    <script src="//localhost:8080/auth/js/keycloak.js"></script>
+    <script>
+        function initKeycloak() {
+            var keycloak = new Keycloak();
+            keycloak.init({
+                onLoad: 'login-required'
+            }).then(function (authenticated) {
+                alert(authenticated ? 'authenticated' : 'not authenticated');
+            }).catch(function () {
+                alert('failed to initialize');
+            });
+        }
+    </script>
+</head>
+
+<body onload="initKeycloak()">
+    <!-- your page content goes here -->
+</body>
+
+</html>
+----
++
+認証後は `Authorization` ヘッダに `bearer token` を設定することで保護された RESTful サービスにアクセスできる。
++
+[source,javascript]
+----
+var loadData = function () {
+    document.getElementById('username').innerText = keycloak.subject;
+
+    var url = 'http://mockbin.org/request';
+
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.setRequestHeader('Accept', 'application/json');
+    req.setRequestHeader('Authorization', 'Bearer ' + keycloak.token);
+
+    req.onreadystatechange = function () {
+        if (req.readyState == 4) {
+            if (req.status == 200) {
+                alert('Success');
+            } else if (req.status == 403) {
+                alert('Forbidden');
+            }
+        }
+    }
+
+    req.send();
+};
+----
++
+デフォルトではアクセストークンの有効期限は短いため、サービスにリクエストを送る前にトークンをリフレッシュする必要がある。
++
+[source,javascript]
+----
+keycloak.updateToken(30).then(function() {
+    loadData();
+}).catch(function() {
+    alert('Failed to refresh token');
+});
+----
