@@ -1,0 +1,283 @@
+= JWT プラグイン
+
+* https://docs.konghq.com/hub/kong-inc/jwt/[JWT]
+
+== プラグインの有効化
+
+* サービスに対して有効化する場合
++
+[source,shell]
+----
+curl -X POST http://{HOST}:8001/services/{SERVICE}/plugins \
+    --data "name=jwt"  \
+    --data "config.secret_is_base64=false" \
+    --data "config.run_on_preflight=true"
+----
+* ルートに対して有効化する場合
++
+[source,shell]
+----
+curl -X POST http://{HOST}:8001/routes/{ROUTE}/plugins \
+    --data "name=jwt"  \
+    --data "config.secret_is_base64=false" \
+    --data "config.run_on_preflight=true"
+----
+* システム全体に対して有効化する場合
++
+[source,shell]
+----
+curl -X POST http://{HOST}:8001/plugins/ \
+    --data "name=jwt"  \
+    --data "config.secret_is_base64=false" \
+    --data "config.run_on_preflight=true"
+----
+
+== 利用方法
+
+. コンシューマーとその JWT クレデンシャルを作成
+. クレデンシャルに対応する JWT を作成し、それを使って保護されたサービスにリクエストを送信
+
+=== JWT クレデンシャルを作成
+
+* Create a Consumer
++
+[source,shell]
+----
+curl -d "username=user123&custom_id=SOME_CUSTOM_ID" http://localhost:8001/consumers/
+----
+* Create a JWT credential
++
+[source,shell]
+----
+curl -X POST http://localhost:8001/consumers/user123/jwt -H "Content-Type: application/x-www-form-urlencoded"
+----
++
+[source,json]
+----
+{"key":"vYpRfMXmV4ohO9lSySWyBhTpM2iLlG44","tags":null,"created_at":1644711614,"rsa_public_key":null,"consumer":{"id":"abae9244-d5e7-4f3a-aafd-c0e86f626950"},"algorithm":"HS256","secret":"aLrq8z7luW6puw3A0tdZmyyxeYQSnkf3","id":"205d9f01-6982-413d-8643-371c02426474"}
+----
+* Delete a JWT credential
++
+[source,shell]
+----
+curl -X DELETE http://localhost:8001/consumers/{consumer}/jwt/{id}
+----
+* List JWT credentials
++
+[source,shell]
+----
+curl -X GET http://localhost:8001/consumers/{consumer}/jwt
+----
+
+=== JWT の作成と利用
+
+ここでは、 JWT は自分で作成するものとする。
+Auth0 のような認証サービスを使って JWT を入手する場合の例は <<Auth0>> を参照。
+
+* Craft a JWT with a secret (HS256)
++
+コンシューマーがクレデンシャルを取得して HS256 で署名する場合、次のように JWT を作成する必要がある。
++
+.. ヘッダーが以下のようになっている。
++
+[source,json]
+----
+{
+    "typ": "JWT",
+    "alg": "HS256"
+}
+----
++
+.. クレームに `config.key_claim_name` で設定された（デフォルトでは `iss` ）シークレットのキーが含まれている。
+その値として、作成したクレデンシャルの `key` と同じ値を設定する。
++
+参考 : https://jwt.io を使ってデバッグ用に JWT を作成することができる。
+* Send a request with the JWT
++
+`config.header_names` で設定されたヘッダー（デフォルトでは `Authorization` を含む）として JWT を追加することで、
+Kong へのリクエストに含めることができる。
++
+[source,shell]
+----
+curl http://kong:8000/{route path} \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhMzZjMzA0OWIzNjI0OWEzYzlmODg5MWNiMTI3MjQzYyIsImV4cCI6MTQ0MjQzMDA1NCwibmJmIjoxNDQyNDI2NDU0LCJpYXQiOjE0NDI0MjY0NTR9.AhumfY35GFLuEEjrOXiaADo7Ae6gt_8VLwX7qffhQN4'
+----
++
+クエリパラメタとして指定する場合は、 `config.uri_param_names` で設定されたパラメタ（デフォルトでは `jwt` を含む）を使用する。
++
+[source,shell]
+----
+curl http://kong:8000/{route path}?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhMzZjMzA0OWIzNjI0OWEzYzlmODg5MWNiMTI3MjQzYyIsImV4cCI6MTQ0MjQzMDA1NCwibmJmIjoxNDQyNDI2NDU0LCJpYXQiOjE0NDI0MjY0NTR9.AhumfY35GFLuEEjrOXiaADo7Ae6gt_8VLwX7qffhQN4
+----
++
+クッキーとして指定する場合は、 `config.cookie_names` で設定されたパラメタ（デフォルトでは無効）を使用する。
++
+[source,shell]
+----
+curl --cookie jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhMzZjMzA0OWIzNjI0OWEzYzlmODg5MWNiMTI3MjQzYyIsImV4cCI6MTQ0MjQzMDA1NCwibmJmIjoxNDQyNDI2NDU0LCJpYXQiOjE0NDI0MjY0NTR9.AhumfY35GFLuEEjrOXiaADo7Ae6gt_8VLwX7qffhQN4 http://kong:8000/{route path}
+----
++
+gRPC リクエストの場合はヘッダーに含まれる。
++
+[NOTE]
+====
+JWT が有効でアップストリームのサービスにプロキシしている場合、 Kong はコンシューマーを識別するヘッダーを追加
+する以外の変更をせずに JWT をそのまま転送する。サービスは JWT を base64 でデコードして使用する。
+====
+* Craft a JWT with public/private keys (RS256 or ES256)
++
+RS256 や ES256 を使って JWT を検証したい場合、クレデンシャルの作成時にアルゴリズムとして RS256 か ES256 を選択し、
+ES256 で署名されたトークンを含む公開鍵を `rsa_public_key` フィールドに設定する。
++
+[source,shell]
+----
+curl -X POST http://kong:8001/consumers/{consumer}/jwt \
+      -F "rsa_public_key=@/path/to/public_key.pem"
+----
++
+[source,json]
+----
+{
+    "consumer_id": "7bce93e1-0a90-489c-c887-d385545f8f4b",
+    "created_at": 1442426001000,
+    "id": "bcbfb45d-e391-42bf-c2ed-94e32946753a",
+    "key": "a36c3049b36249a3c9f8891cb127243c",
+    "rsa_public_key": "-----BEGIN PUBLIC KEY----- ..."
+}
+----
++
+署名を作成するときには、ヘッダーが以下となっていることを確認する。
++
+[source,json]
+----
+{
+    "typ": "JWT",
+    "alg": "RS256"
+}
+----
++
+また、 `config.key_claim_name` で設定されたクレームに `key` の値が含まれている必要がある。
++
+[source,json]
+----
+{
+    "iss": "a36c3049b36249a3c9f8891cb127243c"
+}
+----
++
+そして、秘密鍵を使って署名を行う。
++
+参考 : https://jwt.io を使ってデバッグ用に JWT を作成することができる。
++
+作成した JWT は `Authorization` ヘッダーに設定する。
++
+[source,shell]
+----
+curl http://kong:8000/{route path} \
+    -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxM2Q1ODE0NTcyZTc0YTIyYjFhOWEwMDJmMmQxN2MzNyJ9.uNPTnDZXVShFYUSiii78Q-IAfhnc2ExjarZr_WVhGrHHBLweOBJxGJlAKZQEKE4rVd7D6hCtWSkvAAOu7BU34OnlxtQqB8ArGX58xhpIqHtFUkj882JQ9QD6_v2S2Ad-EmEx5402ge71VWEJ0-jyH2WvfxZ_pD90n5AG5rAbYNAIlm2Ew78q4w4GVSivpletUhcv31-U3GROsa7dl8rYMqx6gyo9oIIDcGoMh3bu8su5kQc5SQBFp1CcA5H8sHGfYs-Et5rCU2A6yKbyXtpHrd1Y9oMrZpEfQdgpLae0AfWRf6JutA9SPhst9-5rn4o3cdUmto_TBGqHsFmVyob8VQ'
+----
+* Generate public/private keys
++
+公開鍵／秘密鍵ペアを作成するには以下のコマンドを実行する。
++
+.. 秘密鍵の作成
++
+[source,shell]
+----
+openssl genrsa -out private.pem 2048
+----
+.. 公開鍵の作成
++
+[source,shell]
+----
+openssl rsa -in private.pem -outform PEM -pubout -out public.pem
+----
+
+[#Auth0]
+=== Using the JWT plugin with Auth0
+
+* https://docs.konghq.com/hub/kong-inc/jwt/#using-the-jwt-plugin-with-auth0[Using the JWT plugin with Auth0]
+
+[NOTE]
+====
+Auth0 は RS256 を利用しており、 base64 エンコードは使っていない。
+====
+
+.利用フロー例
+. Create a Service
++
+[source,shell]
+----
+curl -i -f -X POST http://localhost:8001/services \
+    --data "name=example-service" \
+    --data "url=http://httpbin.org"
+----
+. create a Route
++
+[source,shell]
+----
+curl -i -f -X POST http://localhost:8001/routes \
+    --data "service.id={example-service's id}" \
+    --data "paths[]=/example_path"
+----
+. Add the JWT Plugin
++
+[source,shell]
+----
+curl -X POST http://localhost:8001/route/{route id}/plugins \
+    --data "name=jwt"
+----
+. Download your Auth0 account’s X509 Certificate
++
+[source,shell]
+----
+curl -o {COMPANYNAME}.pem https://{COMPANYNAME}.{REGION-ID}.auth0.com/pem
+----
+. Extract the public key from the X509 Certificate
++
+[source,shell]
+----
+openssl x509 -pubkey -noout -in {COMPANYNAME}.pem > pubkey.pem
+----
+. Create a Consumer with the Auth0 public key
++
+[source,shell]
+----
+curl -i -X POST http://kong:8001/consumers \
+    --data "username=<USERNAME>" \
+    --data "custom_id=<CUSTOM_ID>"
+curl -i -X POST http://localhost:8001/consumers/{consumer}/jwt \
+    -F "algorithm=RS256" \
+    -F "rsa_public_key=@./pubkey.pem" \
+    -F "key=https://{COMPANYNAME}.auth0.com/" # the `iss` field
+----
+. Send requests
++
+[source,shell]
+----
+curl -i http://localhost:8000 \
+    -H "Host:example.com" \
+    -H "Authorization:Bearer <TOKEN>"
+----
+
+=== Upstream Headers
+
+* https://docs.konghq.com/hub/kong-inc/jwt/#upstream-headers[Upstream Headers]
+
+JWT が検証されてコンシューマーが認証されると、いくつかのヘッダーを設定してからアップストリームの
+サービスにプロキシされる。これによって、サービス側の実装でコンシューマーを識別できる。
+
+X-Consumer-ID::
+  Kong のコンシューマー ID
+X-Consumer-Custom-ID::
+  コンシューマーの `custom_id` （設定されている場合）
+X-Consumer-Username::
+  コンシューマーの `username` （設定されている場合）
+X-Credential-Identifier::
+  クレデンシャルの `identifier` （設定されている場合）
+X-Anonymous-Consumer::
+  認証に失敗した場合は true となり、匿名コンシューマーが代わりにセットされる。
+
+これらの情報を使ってコンシューマーを意識した処理を実装できる。
+`X-Consumer-ID` を使って Kong の管理用 API にクエリを発行することで、さらに詳細な情報を
+取得できる。
