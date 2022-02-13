@@ -224,7 +224,7 @@ curl -i -f -X POST http://localhost:8001/routes \
 +
 [source,shell]
 ----
-curl -X POST http://localhost:8001/route/{route id}/plugins \
+curl -X POST http://localhost:8001/routes/{route id}/plugins \
     --data "name=jwt"
 ----
 . Download your Auth0 account’s X509 Certificate
@@ -243,7 +243,7 @@ openssl x509 -pubkey -noout -in {COMPANYNAME}.pem > pubkey.pem
 +
 [source,shell]
 ----
-curl -i -X POST http://kong:8001/consumers \
+curl -i -X POST http://localhost:8001/consumers \
     --data "username=<USERNAME>" \
     --data "custom_id=<CUSTOM_ID>"
 curl -i -X POST http://localhost:8001/consumers/{consumer}/jwt \
@@ -286,3 +286,117 @@ X-Anonymous-Consumer::
 iss の代わりに 認証したユーザ id 相当のクレームを使うか、kong の認可は１つのコンシューマーで
 済ませて、サービス側で iss の情報を元に jwt を解析する？
 
+=== Keycloak との連携
+
+.Keycloak 側の設定例
+. レルムの作成（ `Add realm` ）
++
+例） `myrealm`
+. ユーザーの作成（ `Add user` ）
++
+例） `myuser` / `mypasswd`
+. クライアントの作成
++
+Settings::
+  Client ID:::
+    `kong-consumer`
+  Client Protocol:::
+    `openid-connect`
+  Access Type:::
+    `public`
+  Valid Redirect URIs:::
+    ** `http://localhost/*`
+  Web Origins:::
+    ** `*`
+Installation::
+  Format Option:::
+    `Keycloak OIDC JSON`
+. 公開鍵の取得
++
+レルムの設定画面（ `Keys` => `Active` ）から公開鍵を取得する。
++
+Algorithm::
+  `RS256`
+Public keys::
+  `Public key`
++
+`keycloak_myrealm_rs256_pub.pem` として保存しているものとする。
++
+** `-----BEGIN PUBLIC KEY-----` / `-----END PUBLIC KEY-----` で囲む必要がある。
+** http://localhost:8080/auth/realms/myrealm にアクセスすると `public_key` フィールドから取得可能？
+
+.Kong 側の設定例
+. サービスの作成
++
+[source,shell]
+----
+curl -i -f -X POST http://localhost:8001/services \
+    --data "name=example-service" \
+    --data "url=http://mockbin.org/request"
+----
++
+[source,json]
+----
+{"tls_verify":null,"tls_verify_depth":null,"path":"/request","port":80,"name":"example-service","client_certificate":null,"created_at":1644754633,"updated_at":1644754633,"tags":null,"ca_certificates":null,"connect_timeout":60000,"read_timeout":60000,"id":"e0f95b1a-9657-4456-b36a-8f861e19b2c5","protocol":"http","host":"mockbin.org","enabled":true,"retries":5,"write_timeout":60000}
+----
+. ルートの作成
++
+[source,shell]
+----
+curl -i -f -X POST http://localhost:8001/routes \
+    --data "service.id=e0f95b1a-9657-4456-b36a-8f861e19b2c5" \
+    --data "paths[]=/example_path"
+----
++
+[source,json]
+----
+{"strip_path":true,"https_redirect_status_code":426,"preserve_host":false,"protocols":["http","https"],"hosts":null,"name":null,"created_at":1644754667,"snis":null,"service":{"id":"e0f95b1a-9657-4456-b36a-8f861e19b2c5"},"regex_priority":0,"path_handling":"v0","id":"4880187e-5b03-4ece-adba-7a5aad3bddbf","updated_at":1644754667,"tags":null,"paths":["/example_path"],"methods":null,"sources":null,"destinations":null,"request_buffering":true,"response_buffering":true,"headers":null}
+----
+. JWT プラグインの追加
++
+`config.run_on_preflight` を有効にしていると CORS のプリフライトでも認証しようとする。ここでは無効にしておく。
++
+[source,shell]
+----
+curl -X POST http://localhost:8001/routes/4880187e-5b03-4ece-adba-7a5aad3bddbf/plugins \
+    --data "name=jwt" \
+    --data "config.run_on_preflight=false"
+----
++
+[source,json]
+----
+{"service":null,"protocols":["grpc","grpcs","http","https"],"id":"6b874a2a-b443-4f80-9b30-66b95b07760b","config":{"anonymous":null,"secret_is_base64":false,"maximum_expiration":0,"cookie_names":[],"uri_param_names":["jwt"],"key_claim_name":"iss","header_names":["authorization"],"claims_to_verify":null,"run_on_preflight":false},"name":"jwt","enabled":true,"created_at":1644754749,"tags":null,"consumer":null,"route":{"id":"4880187e-5b03-4ece-adba-7a5aad3bddbf"}}
+----
+. コンシューマーと公開鍵付きのクレデンシャルの作成
++
+[source,shell]
+----
+curl -i -X POST http://localhost:8001/consumers \
+    --data "username=keycloak1" \
+    --data "custom_id=keycloak_custum1"
+----
++
+[source,json]
+----
+{"tags":null,"custom_id":"keycloak_custum1","created_at":1644750869,"id":"35ef2809-6e0b-4c02-a572-38b14a61568d","username":"keycloak1"}
+----
++
+[source,shell]
+----
+curl -i -X POST http://localhost:8001/consumers/35ef2809-6e0b-4c02-a572-38b14a61568d/jwt \
+    -F "algorithm=RS256" \
+    -F "rsa_public_key=@./keycloak_myrealm_rs256_pub.pem" \
+    -F "key=http://localhost:8080/auth/realms/myrealm"
+----
++
+[source,json]
+----
+{"tags":null,"key":"http://localhost:8080/auth/realms/myrealm","secret":"2Y4mlUg6IBlE0C1dJ9FlgtkrG2G7QfwM","rsa_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjHtliEKUQsBdIjPavdDDObgnaSVdrndw8jvuSZ7YgdKmwpyikMPJaBdhgluNTYH7hwEVcmeZ4hHXJtFYfwZsvunk1v1hwaW9v2Hhf/KGeE21go2p1b3f2JwduVdBR3sfFE7XH7rlvhhv+Nzb1jEkahesV6G1MbDZWBKsCyhF0elk+n3SujqHlL0roj08X9gEjFrwObMqI5hmxwD3h0G+ViyP+KbupSS4gitCvyrzXsUiNjWUe53wASObOS21GYPeK2XuALuELROjlCCRLCOvAG+7Ahtn4KdRC9vPsbkcz0sBiQXvgmEN5hBu8kUD4gYLUP2b+Q6ijg34yFetUUB/eQIDAQAB\n-----END PUBLIC KEY-----","algorithm":"RS256","created_at":1644752824,"consumer":{"id":"35ef2809-6e0b-4c02-a572-38b14a61568d"},"id":"771a20ce-a354-4d4d-942b-8496ec024321"}
+----
+. リクエストの送信
++
+[source,shell]
+----
+curl -i http://localhost:8000/example_path \
+    -H "Authorization:Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJMSXZmb1NTYVd0RTBqdTc0VUZ5M0FOU2FFa1hwdGJna0lBSWtvQlZEWlAwIn0.eyJleHAiOjE2NDQ3NTUwNzgsImlhdCI6MTY0NDc1NDc3OCwiYXV0aF90aW1lIjoxNjQ0NzUzNjIyLCJqdGkiOiJlMTk4ODJiYS04NzAyLTQ5ZDctODA2Zi0wNmEwY2Y5ODE1ZGEiLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvbXlyZWFsbSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJjZDgyZDA0MC0yMDNhLTQ0ZDktYjdjNC0zMzc3ODdmZTg0NDEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJrb25nLWNvbnN1bWVyIiwibm9uY2UiOiJhMmUzY2M0OS1iMjlkLTRmN2EtYjljMS05YmQ0YmFjODViYzEiLCJzZXNzaW9uX3N0YXRlIjoiNjUwMWI3MzYtN2FmYS00ZmI1LWExNjAtYWIzYzY1Y2U0NzgwIiwiYWNyIjoiMCIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLW15cmVhbG0iLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJvcGVuaWQgZW1haWwgcHJvZmlsZSIsInNpZCI6IjY1MDFiNzM2LTdhZmEtNGZiNS1hMTYwLWFiM2M2NWNlNDc4MCIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6IkZvbyBCYXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJteXVzZXIiLCJnaXZlbl9uYW1lIjoiRm9vIiwiZmFtaWx5X25hbWUiOiJCYXIifQ.DUGo7ZTp5g23N0bO6lt9YYpVSh9Qo60LnEjlhVOMLGtaxQkqDKzAv632Eoq77Wi3Uj8iwUDv8Zrb4fZS5NjXb4VtLbggfEeIHuC_YI4Ys8fYwlR6_VXvepL2rdx_Y0Km1-2IQQZCX7nbeYrB8vaaB5f3fqrdaVkwo7AIoxysNJls_We19lVkVZ5h1ENDiz4KyEgX3lgyCrihuDaEgV0ecJTdTQzt90XmCiItT_iwcyk1-YyKgzQ5o9xiM6lx6wrHiA8WA-oKK-2PhzKdyrxLL10iNruSV1Y0pwHEs2cesSKa2g4Ytmn68QJQleBMfbKrdB_5Vp20TcUPRpFYNGF04A"
+----

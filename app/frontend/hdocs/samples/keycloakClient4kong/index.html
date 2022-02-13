@@ -1,0 +1,55 @@
+<html>
+
+<head>
+    <script src="//localhost:8080/auth/js/keycloak.js"></script>
+    <script>
+        function initKeycloak() {
+
+            var loadData = function () {
+                document.getElementById('keycloak').value = JSON.stringify(keycloak, null, "\t");
+
+                var url = 'http://localhost:8000/example_path';
+
+                var req = new XMLHttpRequest();
+                req.open('GET', url, true);
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Authorization', 'Bearer ' + keycloak.token);
+
+                req.onreadystatechange = function () {
+                    if (req.readyState == 4) {
+                        if (req.status == 200) {
+                            //alert('Success');
+                            document.getElementById('result').value = req.responseText;
+                        } else if (req.status == 403) {
+                            alert('Forbidden');
+                        }
+                    }
+                }
+
+                req.send();
+            };
+
+            var keycloak = new Keycloak();
+            keycloak.init({
+                onLoad: 'login-required'
+            }).then(function (authenticated) {
+                alert(authenticated ? 'authenticated' : 'not authenticated');
+                loadData();
+            }).catch(function () {
+                alert('failed to initialize');
+            });
+        }
+    </script>
+</head>
+
+<body onload="initKeycloak()">
+    <!-- your page content goes here -->
+    <div>
+        <pre><output id="keycloak"></output></pre>
+    </div>
+    <div>
+        <pre><output id="result"></output></pre>
+    </div>
+</body>
+
+</html>
