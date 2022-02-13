@@ -40,7 +40,6 @@ Settings::
     `public`
   Valid Redirect URIs:::
     ** `http://localhost/*`
-    ** `http://mockbin.org/*`
   Web Origins:::
     ** `*`
 Installation::
