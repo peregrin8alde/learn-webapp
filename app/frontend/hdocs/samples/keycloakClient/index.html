@@ -34,7 +34,12 @@
                 onLoad: 'login-required'
             }).then(function (authenticated) {
                 alert(authenticated ? 'authenticated' : 'not authenticated');
-                loadData();
+
+                keycloak.updateToken(30).then(function () {
+                    loadData();
+                }).catch(function () {
+                    alert('Failed to refresh token');
+                });
             }).catch(function () {
                 alert('failed to initialize');
             });
