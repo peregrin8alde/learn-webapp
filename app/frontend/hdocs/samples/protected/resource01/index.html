@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Sample page</title>
+    <script src="//localhost:8080/auth/js/keycloak.js"></script>
+    <script src="functions.js"></script>
+    
+</head>
+
+<body onload="initKeycloak()">
+    <h1>Sample page</h1>
+
+    <form name="create" onsubmit="fetchPost(this); return false">
+        <p><label>title: <input name="title"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>create</button></p>
+    </form>
+
+    <form name="readAll" onsubmit="fetchGetAll(this); return false">
+        <p>Response: <output name=result></output></p>
+        <p><button>readAll</button></p>
+    </form>
+
+    <form name="readById" onsubmit="fetchGetById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>readById</button></p>
+    </form>
+
+    <form name="updateById" onsubmit="fetchPutById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p><label>title: <input name="title"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>update</button></p>
+    </form>
+
+    <form name="deleteById" onsubmit="fetchDeleteById(this); return false">
+        <p><label>id: <input name="id"></label></p>
+        <p>Response: <output name=result></output></p>
+        <p><button>delete</button></p>
+    </form>
+
+</body>
+
+</html>
