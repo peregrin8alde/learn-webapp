@@ -581,3 +581,9 @@ public class CorsFilter implements ContainerResponseFilter {
 }
 ----
 
+=== 資格情報を含むリクエスト
+
+* https://developer.mozilla.org/ja/docs/Web/HTTP/CORS#%E8%B3%87%E6%A0%BC%E6%83%85%E5%A0%B1%E3%82%92%E5%90%AB%E3%82%80%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88[資格情報を含むリクエスト]
+
+`Access-Control-Allow-Credentials: true` が必要だったり、 `Access-Control-Allow-Origin` などにワイルドカードを使えなかったりする。
+
