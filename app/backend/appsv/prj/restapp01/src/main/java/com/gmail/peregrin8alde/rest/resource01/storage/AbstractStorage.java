@@ -12,6 +12,15 @@ public abstract class AbstractStorage {
      * 正常時に情報が必要な場合のみ復帰値
      * 動作内容はログで出力
      */
+    private String nameSpace;
+
+    public String getNameSpace() {
+        return nameSpace;
+    }
+
+    public void setNameSpace(String nameSpace) throws StorageException {
+        this.nameSpace = nameSpace;
+    }
 
     /* Create */
     /*
@@ -50,9 +59,9 @@ public abstract class AbstractStorage {
     public abstract void updateOne(String id, Book book) throws StorageException;
 
     /*
-     * 復帰値 : 
-     *   - Book : 作成したデータ
-     *   - null : データが作成されず置換された
+     * 復帰値 :
+     * - Book : 作成したデータ
+     * - null : データが作成されず置換された
      * 基本的には作成したデータを特定するための _id だけ分かれば良いが、
      * 他にも自動設定するパラメタが増えた場合に備えて丸ごと返す。
      */

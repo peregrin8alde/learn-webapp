@@ -2,6 +2,7 @@ package com.gmail.peregrin8alde.rest.resource01.storage;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -22,31 +23,44 @@ import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageExceptio
 
 public class LocalFileSystemStorage extends AbstractStorage {
 
-    private String baseDir;
+    private String rootDir;
 
     private Jsonb jsonb;
+
+    public LocalFileSystemStorage(String rootDir, String subdir) {
+        try {
+            this.rootDir = rootDir;
+            this.setNameSpace(subdir);
+
+            // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonbbuilder
+            // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonb
+            // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonbconfig
+            JsonbConfig config = new JsonbConfig();
+            config.setProperty("ENCODING", "UTF-8");
+            jsonb = JsonbBuilder.create(config);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public LocalFileSystemStorage(String rootDir) {
+        this(rootDir, "public");
+    }
 
     public LocalFileSystemStorage() {
         this("/storage/restapp01");
     }
 
-    public LocalFileSystemStorage(String baseDir) {
-        this.baseDir = baseDir;
-
+    public void setNameSpace(String nameSpace) throws StorageException {
         // https://docs.oracle.com/javase/tutorial/essential/io/dirs.html
         try {
-            Files.createDirectories(Paths.get(baseDir));
+            Files.createDirectories(Paths.get(rootDir + File.separator + nameSpace));
         } catch (IOException e) {
             // キャッチせずコンストラクタ自体失敗させたいところだが、 JAX-RS 側でどう扱うべきかが不明なため暫定処理
             e.printStackTrace();
         }
 
-        // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonbbuilder
-        // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonb
-        // https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/jsonbconfig
-        JsonbConfig config = new JsonbConfig();
-        config.setProperty("ENCODING", "UTF-8");
-        jsonb = JsonbBuilder.create(config);
+        super.setNameSpace(nameSpace);
     }
 
     /* Create */
@@ -58,7 +72,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
         /* 新規作成 */
         // https://docs.oracle.com/javase/tutorial/essential/io/file.html
-        Path file = Paths.get(baseDir + "/" + id + ".json");
+        Path file = Paths.get(rootDir + File.separator + super.getNameSpace() + File.separator + id + ".json");
         try (BufferedWriter writer = Files.newBufferedWriter(file)) {
             book.setId(id);
 
@@ -76,7 +90,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
     /* Read */
     public List<Book> find() throws StorageException {
         // https://docs.oracle.com/javase/tutorial/essential/io/file.html
-        Path dir = Paths.get(baseDir);
+        Path dir = Paths.get(rootDir + File.separator + super.getNameSpace());
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
             List<Book> books = new ArrayList<Book>();
 
@@ -105,7 +119,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
     }
 
     public Book findOne(String id) throws StorageException {
-        Path file = Paths.get(baseDir + "/" + id + ".json");
+        Path file = Paths.get(rootDir + File.separator + super.getNameSpace() + File.separator + id + ".json");
         if (!Files.exists(file)) {
             /* 存在することを確認できない場合 */
             throw new DataNotFoundException("data not found, id : " + id);
@@ -124,7 +138,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
     /* Update */
     public void updateOne(String id, Book book) throws StorageException {
-        Path file = Paths.get(baseDir + "/" + id + ".json");
+        Path file = Paths.get(rootDir + File.separator + super.getNameSpace() + File.separator + id + ".json");
         if (!Files.exists(file)) {
             /* 存在することを確認できない場合 */
             throw new DataNotFoundException("data not found, id : " + id);
@@ -141,7 +155,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
     }
 
     public Book upsertOne(String id, Book book) throws StorageException {
-        Path file = Paths.get(baseDir + "/" + id + ".json");
+        Path file = Paths.get(rootDir + File.separator + super.getNameSpace() + File.separator + id + ".json");
         try (BufferedWriter writer = Files.newBufferedWriter(file)) {
             book.setId(id);
             jsonb.toJson(book, writer);
@@ -156,7 +170,7 @@ public class LocalFileSystemStorage extends AbstractStorage {
 
     /* Delete */
     public void deleteOne(String id) throws StorageException {
-        Path file = Paths.get(baseDir + "/" + id + ".json");
+        Path file = Paths.get(rootDir + File.separator + super.getNameSpace() + File.separator + id + ".json");
         try {
             // https://docs.oracle.com/javase/tutorial/essential/io/delete.html
             Files.delete(file);

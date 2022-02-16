@@ -23,19 +23,48 @@ import com.gmail.peregrin8alde.rest.resource01.storage.exception.StorageExceptio
 @DataSourceDefinition(name = "java:app/MyDataSource", className = "org.postgresql.ds.PGSimpleDataSource", portNumber = 5432, serverName = "webapp_db", databaseName = "testdb", user = "postgres", password = "postgres")
 
 public class DatabaseStorage extends AbstractStorage {
+    private final String bookTblName = "books";
+
     // 有効になってない？
     @Resource(lookup = "java:app/MyDataSource")
     DataSource myDB;
 
-    public DatabaseStorage() {
+    public DatabaseStorage(String schema) {
         Context ctx;
         try {
             ctx = new InitialContext();
             myDB = (DataSource) ctx.lookup("java:app/MyDataSource");
+
+            this.setNameSpace(schema);
         } catch (NamingException e) {
             e.printStackTrace();
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public DatabaseStorage() {
+        this("public");
+    }
+
+    public void setNameSpace(String nameSpace) throws StorageException {
+        Connection conn = null;
+        try {
+            conn = myDB.getConnection();
+            createBookTbl(conn);
+        } catch (SQLException e) {
+            throw new StorageException(e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    throw new StorageException(e.getMessage());
+                }
+            }
         }
 
+        super.setNameSpace(nameSpace);
     }
 
     /* Create */
@@ -51,7 +80,8 @@ public class DatabaseStorage extends AbstractStorage {
             // https://jdbc.postgresql.org/documentation/head/update.html#delete-example
             // https://www.postgresql.jp/document/13/html/sql-insert.html
             // id は DB 側で自動生成して PostgreSQL の return 句などで返却したいが、標準的な構文ではないので未使用
-            PreparedStatement st = conn.prepareStatement("INSERT INTO books (id, title) VALUES (?, ?)");
+            PreparedStatement st = conn.prepareStatement(
+                    "INSERT INTO \"" + super.getNameSpace() + "\"." + bookTblName + "(id, title) VALUES (?, ?)");
 
             String id = UUID.randomUUID().toString();
             book.setId(id);
@@ -85,7 +115,7 @@ public class DatabaseStorage extends AbstractStorage {
 
             // https://jdbc.postgresql.org/documentation/head/query.html
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM books");
+            ResultSet rs = st.executeQuery("SELECT * FROM \"" + super.getNameSpace() + "\"." + bookTblName);
 
             List<Book> books = new ArrayList<Book>();
             while (rs.next()) {
@@ -117,7 +147,8 @@ public class DatabaseStorage extends AbstractStorage {
         try {
             conn = myDB.getConnection();
 
-            PreparedStatement st = conn.prepareStatement("SELECT * FROM books WHERE id = ?");
+            PreparedStatement st = conn.prepareStatement(
+                    "SELECT * FROM \"" + super.getNameSpace() + "\"." + bookTblName + " WHERE id = ?");
             st.setString(1, id);
             ResultSet rs = st.executeQuery();
 
@@ -155,7 +186,8 @@ public class DatabaseStorage extends AbstractStorage {
         try {
             conn = myDB.getConnection();
 
-            PreparedStatement st = conn.prepareStatement("SELECT * FROM books WHERE id = ?");
+            PreparedStatement st = conn.prepareStatement(
+                    "SELECT * FROM \"" + super.getNameSpace() + "\"." + bookTblName + " WHERE id = ?");
             st.setString(1, id);
             ResultSet rs = st.executeQuery();
 
@@ -173,7 +205,8 @@ public class DatabaseStorage extends AbstractStorage {
                 throw new DataNotFoundException("data not found, id : " + id);
             }
 
-            st = conn.prepareStatement("UPDATE books SET title = ? WHERE id = ?");
+            st = conn.prepareStatement(
+                    "UPDATE \"" + super.getNameSpace() + "\"." + bookTblName + " SET title = ? WHERE id = ?");
 
             book.setId(id);
 
@@ -200,7 +233,8 @@ public class DatabaseStorage extends AbstractStorage {
         try {
             conn = myDB.getConnection();
 
-            PreparedStatement st = conn.prepareStatement("UPDATE books SET title = ? WHERE id = ?");
+            PreparedStatement st = conn.prepareStatement(
+                    "UPDATE \"" + super.getNameSpace() + "\"." + bookTblName + " SET title = ? WHERE id = ?");
 
             book.setId(id);
 
@@ -230,7 +264,8 @@ public class DatabaseStorage extends AbstractStorage {
         try {
             conn = myDB.getConnection();
 
-            PreparedStatement st = conn.prepareStatement("SELECT * FROM books WHERE id = ?");
+            PreparedStatement st = conn.prepareStatement(
+                    "SELECT * FROM \"" + super.getNameSpace() + "\"." + bookTblName + " WHERE id = ?");
             st.setString(1, id);
             ResultSet rs = st.executeQuery();
 
@@ -248,7 +283,7 @@ public class DatabaseStorage extends AbstractStorage {
                 throw new DataNotFoundException("data not found, id : " + id);
             }
 
-            st = conn.prepareStatement("DELETE FROM books WHERE id = ?");
+            st = conn.prepareStatement("DELETE FROM \"" + super.getNameSpace() + "\"." + bookTblName + " WHERE id = ?");
 
             st.setString(1, id);
             st.executeUpdate();
@@ -264,6 +299,31 @@ public class DatabaseStorage extends AbstractStorage {
                     throw new StorageException(e.getMessage());
                 }
             }
+        }
+    }
+
+    private void createBookTbl(Connection conn) throws StorageException {
+        try {
+            createUserShema(conn);
+
+            Statement st = conn.createStatement();
+            st.execute("CREATE TABLE IF NOT EXISTS \"" + super.getNameSpace() + "\"." + bookTblName
+                    + "(id varchar(256) PRIMARY KEY, title varchar(1024))");
+        } catch (SQLException e) {
+            throw new StorageException(e.getMessage());
+        } finally {
+
+        }
+    }
+
+    private void createUserShema(Connection conn) throws StorageException {
+        try {
+            Statement st = conn.createStatement();
+            st.execute("CREATE SCHEMA IF NOT EXISTS \"" + super.getNameSpace() + "\"");
+        } catch (SQLException e) {
+            throw new StorageException(e.getMessage());
+        } finally {
+
         }
     }
 }

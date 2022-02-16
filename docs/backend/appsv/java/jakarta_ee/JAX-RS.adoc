@@ -587,3 +587,28 @@ public class CorsFilter implements ContainerResponseFilter {
 
 `Access-Control-Allow-Credentials: true` が必要だったり、 `Access-Control-Allow-Origin` などにワイルドカードを使えなかったりする。
 
+== 認証
+
+OAuth2.0 などで `Authorization` ヘッダに認証用情報を含める場合、 `Security Context` を利用する。
+
+* https://jakarta.ee/specifications/restful-ws/3.0/jakarta-restful-ws-spec-3.0.html#security_context[10.2.5. Security Context]
+* https://jakarta.ee/specifications/restful-ws/3.0/jakarta-restful-ws-spec-3.0.html#headersupport[Appendix B: HTTP Header Support]
+* https://jakarta.ee/specifications/restful-ws/3.0/apidocs/jakarta/ws/rs/core/securitycontext[API Doc]
+
+今回、自身では認証認可までは行わず、API Gateway で認可が済んだ JWT トークンが渡された場合を想定して独自にヘッダーを解析する。
+
+* https://jakarta.ee/specifications/restful-ws/3.0/jakarta-restful-ws-spec-3.0.html#httpheaders[10.2.3. Headers]
+
+[source,java]
+----
+@GET
+@Produces("text/plain")
+public String listHeaderNames(@Context HttpHeaders headers) {
+    StringBuilder buf = new StringBuilder();
+    for (String header: headers.getRequestHeaders().keySet()) {
+        buf.append(header);
+        buf.append("\n");
+    }
+    return buf.toString();
+}
+----

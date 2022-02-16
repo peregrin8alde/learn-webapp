@@ -1,13 +1,20 @@
 package com.gmail.peregrin8alde.rest.resource01;
 
+import java.io.StringReader;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
@@ -51,7 +58,8 @@ public class Resource01 {
     /* DB への接続プールなどの状態維持はストレージクラス側で調整 */
     private AbstractStorage bookStorage;
 
-    public Resource01() {
+    public Resource01(@Context HttpHeaders headers) {
+        /* 設定ファイルから設定取得 */
         // https://download.eclipse.org/microprofile/microprofile-config-2.0/apidocs/
         ConfigProviderResolver resolver = ConfigProviderResolver.instance();
         ConfigBuilder builder = resolver.getBuilder();
@@ -59,14 +67,37 @@ public class Resource01 {
 
         String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.type", String.class);
 
+        /* トークンからユーザー情報取得 */
+        JsonObject tokenPayload = getTokenPayload(headers);
+        String userId = tokenPayload.getString("sub");
+
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
         if (storageType.equals("file")) {
             String rootDir = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.file.rootdir", String.class);
-            bookStorage = new LocalFileSystemStorage(rootDir);
+            if (userId.equals("anonymous")) {
+                /* 匿名アクセスや公開リソース向け */
+                bookStorage = new LocalFileSystemStorage(rootDir);
+            } else {
+                bookStorage = new LocalFileSystemStorage(rootDir, userId);
+            }
         } else if (storageType.equals("db")) {
-            bookStorage = new DatabaseStorage();
+            if (userId.equals("anonymous")) {
+                /* 匿名アクセスや公開リソース向け */
+                bookStorage = new DatabaseStorage();
+            } else {
+                bookStorage = new DatabaseStorage(userId);
+            }
         } else {
             bookStorage = dummyStorage;
+            if (userId.equals("anonymous")) {
+                /* 匿名アクセスや公開リソース向け */
+            } else {
+                try {
+                    bookStorage.setNameSpace(userId);
+                } catch (StorageException e) {
+                    e.printStackTrace();
+                };
+            }
         }
     }
 
@@ -222,4 +253,28 @@ public class Resource01 {
         }
     }
 
+
+    private JsonObject getTokenPayload(HttpHeaders headers) {
+
+        //System.out.println("headers");
+        //System.out.println(headers.getHeaderString("Authorization"));
+        String bearerToken = headers.getHeaderString("Authorization").substring("Bearer ".length());
+        //System.out.println("token:" + bearerToken + ":");
+
+        String infos[] = bearerToken.split("\\.");
+
+        try (JsonReader jsonReader = Json.createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[0]))))) {
+            JsonObject jwtHeader = jsonReader.readObject();
+
+            //System.out.println("jwtHeader:" + jwtHeader.toString());
+        }
+ 
+        try (JsonReader jsonReader = Json.createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[1]))))) {
+            JsonObject tokenPayload = jsonReader.readObject();
+
+            //System.out.println("tokenPayload:" + tokenPayload.toString());
+
+            return tokenPayload;
+        }
+    }
 }
