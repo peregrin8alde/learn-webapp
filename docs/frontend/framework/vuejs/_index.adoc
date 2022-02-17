@@ -1,0 +1,84 @@
+= Vue.js
+
+* https://v3.ja.vuejs.org/[Vue.js]
+
+== インストール
+
+* 参照 : https://v3.ja.vuejs.org/guide/installation.html[インストール]
+
+インストールには４つの方法がある。
+
+* CDN パッケージ
+** 参照 : https://v3.ja.vuejs.org/guide/installation.html#cdn[CDN]
+** プロトタイプや学習用
+** {empty}
++
+[source,html]
+----
+<script src="https://unpkg.com/vue@next"></script>
+----
+* JavaScript ファイルを自分でホスト
+** 参照 : https://v3.ja.vuejs.org/guide/installation.html#%E8%87%AA%E5%88%86%E3%81%A6%E3%82%99%E3%83%9B%E3%82%B9%E3%83%88%E3%81%99%E3%82%8B[自分でホストする]
+** ビルドツールは使いたくないが、環境の問題で CDN を利用できない場合
+** 以下などから関連する `.js` をダウンロードして CDN と同様に `<script src="..."></script>` で使用
+*** https://unpkg.com/browse/vue@3.2.29/dist/[unpkg]
+*** https://cdn.jsdelivr.net/npm/vue@next/dist/[jsDelivr]
+* npm を使ってインストール
+** 参照 : https://v3.ja.vuejs.org/guide/installation.html#npm[npm]
+** npm を利用したインストール。
+** 大規模開発の場合に推奨。関連ツールなども活用できる。
+** {empty}
++
+[source,shell]
+----
+npm install vue@next
+----
+* 公式のプロジェクト構築用 CLI で構築
+** 参照 : https://v3.ja.vuejs.org/guide/installation.html#cli[CLI]
+** 公式が用意しているビルド設定を利用してモダンなフロントエンドワークフローを構築
+** Node.js と関連するビルドツールに関する予備知識を前提としているため、
+ある程度慣れてから利用することを推奨
+
+== Hello World
+
+* 参考 : https://codepen.io/team/Vue/pen/KKpRVpx[Hello World の例]
+
+* html
++
+[source,html]
+----
+<div id="hello-vue" class="demo">
+  {{ message }}
+</div>
+----
+* css
++
+[source,css]
+----
+.demo {
+  font-family: sans-serif;
+  border: 1px solid #eee;
+  border-radius: 2px;
+  padding: 20px 30px;
+  margin-top: 1em;
+  margin-bottom: 40px;
+  user-select: none;
+  overflow-x: auto;
+}
+----
+* js
++
+[source,javascript]
+----
+const HelloVueApp = {
+  data() {
+    return {
+      message: 'Hello Vue!!'
+    }
+  }
+}
+
+Vue.createApp(HelloVueApp).mount('#hello-vue')
+----
++
+スクリプトの読み込みは html の body の最後に実施？

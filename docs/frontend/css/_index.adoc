@@ -1,0 +1,4 @@
+= CSS
+
+* https://www.w3.org/Style/CSS/#specs[W3C 標準仕様]
+* https://developer.mozilla.org/ja/docs/Web/CSS[CSS: カスケーディングスタイルシート]

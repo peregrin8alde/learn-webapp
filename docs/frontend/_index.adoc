@@ -6,5 +6,4 @@
 * javascript
 * Web サーバ
 * 開発フレームワーク
-*** https://v3.ja.vuejs.org/[Vue.js]
 * テストフレームワーク
