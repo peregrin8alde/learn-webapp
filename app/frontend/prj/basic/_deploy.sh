@@ -3,11 +3,11 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
 PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
-DEPLOY_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../../deploy/hdocs" && pwd)
+BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../.." && pwd)
 
-rm -rf ${DEPLOY_DIR}/*
+rm -rf ${BASE_DIR}/deploy/hdocs/*
 
-cp -rf hdocs/* ${DEPLOY_DIR}/
+cp -rf hdocs/* ${BASE_DIR}/deploy/hdocs/
 
 
 exit 0
