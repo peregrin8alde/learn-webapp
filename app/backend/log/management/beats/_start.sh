@@ -16,7 +16,7 @@ mkdir -p "$SCRIPT_DIR/config"
 mkdir -p "$SCRIPT_DIR/data"
 
 # WEB サーバー
-LOGDIR_WEBSV="${BASE_DIR}/frontend/logs"
+LOGDIR_WEBSV="${BASE_DIR}/frontend/deploy/logs"
 
 docker run \
   --name=webapp_filebeat_websv \
