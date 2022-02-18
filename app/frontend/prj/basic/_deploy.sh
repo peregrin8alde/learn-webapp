@@ -5,9 +5,11 @@ PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
 BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../.." && pwd)
 
-rm -rf ${BASE_DIR}/deploy/hdocs/*
+DEPLOY_DIR=${BASE_DIR}/deploy/hdocs
 
-cp -rf hdocs/* ${BASE_DIR}/deploy/hdocs/
+rm -rf ${DEPLOY_DIR}
+
+cp -rf hdocs ${DEPLOY_DIR}
 
 
 exit 0
