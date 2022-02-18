@@ -21,6 +21,31 @@ https://html.spec.whatwg.org/multipage/introduction.html#a-quick-introduction-to
 </html>
 ----
 
+.head の例（参考 : https://html.spec.whatwg.org/multipage/semantics.html#the-head-element[4.2.1 The head element] ）
+====
+[source,html]
+----
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <base href="https://www.example.com/">
+  <title>An application with a long head</TITLE>
+  <link rel="stylesheet" href="default.css">
+  <link rel="stylesheet alternate" href="big.css" TITLE="Big Text">
+  <script src="support.js"></script>
+  <meta name="application-name" content="Long headed application">
+ </head>
+ <body>
+  <h1>Sample page</h1>
+  <p>This is a <a href="demo.html">simple</a> sample.</p>
+  <!-- this is a comment -->
+ </body>
+</html>
+----
+====
+
+
 == フォーム
 
 https://html.spec.whatwg.org/multipage/forms.html
