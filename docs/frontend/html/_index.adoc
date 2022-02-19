@@ -21,7 +21,7 @@ https://html.spec.whatwg.org/multipage/introduction.html#a-quick-introduction-to
 </html>
 ----
 
-.head の例（参考 : https://html.spec.whatwg.org/multipage/semantics.html#the-head-element[4.2.1 The head element] ）
+.head の例（ https://html.spec.whatwg.org/multipage/semantics.html#the-head-element[4.2.1 The head element] ）
 ====
 [source,html]
 ----
@@ -37,13 +37,33 @@ https://html.spec.whatwg.org/multipage/introduction.html#a-quick-introduction-to
   <meta name="application-name" content="Long headed application">
  </head>
  <body>
-  <h1>Sample page</h1>
-  <p>This is a <a href="demo.html">simple</a> sample.</p>
-  <!-- this is a comment -->
- </body>
-</html>
+  ...
 ----
 ====
+
+.icon へのリンク例（ https://html.spec.whatwg.org/multipage/links.html#rel-icon[] ）
+====
+[source,html]
+----
+<!DOCTYPE HTML>
+<html lang="en">
+ <head>
+  <title>lsForums — Inbox</title>
+  <link rel=icon href=favicon.png sizes="16x16" type="image/png">
+  <link rel=icon href=windows.ico sizes="32x32 48x48" type="image/vnd.microsoft.icon">
+  <link rel=icon href=mac.icns sizes="128x128 512x512 8192x8192 32768x32768">
+  <link rel=icon href=iphone.png sizes="57x57" type="image/png">
+  <link rel=icon href=gnome.svg sizes="any" type="image/svg+xml">
+  <link rel=stylesheet href=lsforums.css>
+  <script src=lsforums.js></script>
+  <meta name=application-name content="lsForums">
+ </head>
+ <body>
+  ...
+----
+====
+
+何も指定していなくても、 `favicon.ico` をブラウザが勝手に取得しようとするので、何かしら用意しておくのが良い。
 
 
 == フォーム
