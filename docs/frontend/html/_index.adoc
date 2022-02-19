@@ -64,7 +64,7 @@ https://html.spec.whatwg.org/multipage/introduction.html#a-quick-introduction-to
 ====
 
 何も指定していなくても、 `favicon.ico` をブラウザが勝手に取得しようとするので、何かしら用意しておくのが良い。
-
+自作する際にデザインが思いつかなければ 32 * 32 px などで適当な色の四角画像にするのもあり。
 
 == フォーム
 
