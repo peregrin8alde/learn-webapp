@@ -1,0 +1,257 @@
+= 基本
+
+参考 : https://v3.ja.vuejs.org/guide/introduction.html#%E3%81%AF%E3%81%97%E3%82%99%E3%82%81%E3%81%AB[はじめに]
+
+== 宣言的レンダリング
+
+単純なテンプレート構文を使って宣言的にデータを DOM にレンダリングすることを可能にする。
+データの変化に反応してレンダリングされた DOM が変化することになる。
+
+.リアクティブ（反応的）な DOM の変化
+====
+[source,html]
+----
+<div id="counter">
+  Counter: {{ counter }}
+</div>
+----
+
+[source,javascript]
+----
+const Counter = {
+  data() {
+    return {
+      counter: 0
+    }
+  },
+  mounted() {
+    setInterval(() => {
+      this.counter++
+    }, 1000)
+  }
+}
+
+Vue.createApp(Counter).mount('#counter')
+----
+====
+
+属性に対して関連付けることも可能。
+
+.要素の属性をバインドする例
+====
+[source,html]
+----
+<div id="bind-attribute">
+  <span v-bind:title="message">
+    Hover your mouse over me for a few seconds to see my dynamically bound
+    title!
+  </span>
+</div>
+----
+
+[source,javascript]
+----
+const AttributeBinding = {
+  data() {
+    return {
+      message: 'You loaded this page on ' + new Date().toLocaleString()
+    }
+  }
+}
+
+Vue.createApp(AttributeBinding).mount('#bind-attribute')
+----
+====
+
+`v-bind` 属性はディレクティブと呼ばれる。
+Vue が提供する特別な属性には `v-` という接頭辞が付く。
+
+== ユーザー入力の制御
+
+`v-on` ディレクティブでイベントリスナーをアタッチできる。
+
+.イベントハンドリングの例
+====
+[source,html]
+----
+<div id="event-handling">
+  <p>{{ message }}</p>
+  <button v-on:click="reverseMessage">Reverse Message</button>
+</div>
+----
+
+[source,javascript]
+----
+const EventHandling = {
+  data() {
+    return {
+      message: 'Hello Vue.js!'
+    }
+  },
+  methods: {
+    reverseMessage() {
+      this.message = this.message
+        .split('')
+        .reverse()
+        .join('')
+    }
+  }
+}
+
+Vue.createApp(EventHandling).mount('#event-handling')
+----
+====
+
+DOM そのものは操作せず、アプリケーションの状態を更新することで、処理ロジックの実装に専念することができる。
+
+`v-model` ディレクディブを使うことで、入力フォームとアプリケーション間で双方向のバインディングを行うことができる。
+
+.双方向バインディングの例
+====
+[source,html]
+----
+<div id="two-way-binding">
+  <p>{{ message }}</p>
+  <input v-model="message" />
+</div>
+----
+
+[source,javascript]
+----
+const TwoWayBinding = {
+  data() {
+    return {
+      message: 'Hello Vue!'
+    }
+  }
+}
+
+Vue.createApp(TwoWayBinding).mount('#two-way-binding')
+----
+====
+
+== 条件分岐とループ
+
+条件分岐やループを使って DOM の構造を変更することができる。
+
+.条件分岐の例
+====
+[source,html]
+----
+<div id="conditional-rendering">
+  <span v-if="seen">Now you see me</span>
+</div>
+----
+
+[source,javascript]
+----
+const ConditionalRendering = {
+  data() {
+    return {
+      seen: true
+    }
+  }
+}
+
+Vue.createApp(ConditionalRendering).mount('#conditional-rendering')
+----
+====
+
+.ループの例
+====
+[source,html]
+----
+<div id="list-rendering">
+  <ol>
+    <li v-for="todo in todos">
+      {{ todo.text }}
+    </li>
+  </ol>
+</div>
+----
+
+[source,javascript]
+----
+const ListRendering = {
+  data() {
+    return {
+      todos: [
+        { text: 'Learn JavaScript' },
+        { text: 'Learn Vue' },
+        { text: 'Build something awesome' }
+      ]
+    }
+  }
+}
+
+Vue.createApp(ListRendering).mount('#list-rendering')
+----
+====
+
+== コンポーネントによる構成
+
+小さく再利用可能なコンポーネントを組み合わせてアプリケーションを作成する。
+
+.コンポーネント（プロパティ付き）の例
+====
+[source,html]
+----
+<div id="todo-list-app">
+  <ol>
+    <!--
+      各 todo-item にその内容を表す todo オブジェクトを指定することで、
+      内容が動的に変化します。
+      後述する "key" も各コンポーネントに
+      指定する必要があります。
+    -->
+    <todo-item
+      v-for="item in groceryList"
+      v-bind:todo="item"
+      v-bind:key="item.id"
+    ></todo-item>
+  </ol>
+</div>
+----
+
+[source,javascript]
+----
+const TodoItem = {
+  props: ['todo'],
+  template: `<li>{{ todo.text }}</li>`
+}
+
+const TodoList = {
+  data() {
+    return {
+      groceryList: [
+        { id: 0, text: 'Vegetables' },
+        { id: 1, text: 'Cheese' },
+        { id: 2, text: 'Whatever else humans are supposed to eat' }
+      ]
+    }
+  },
+  components: {
+    TodoItem
+  }
+}
+
+const app = Vue.createApp(TodoList)
+
+app.mount('#todo-list-app')
+----
+====
+
+大規模なアプリケーションでは、アプリケーション全体をコンポーネントに分割して、
+それぞれを独立して開発できるようにする。
+
+[source,html]
+----
+<div id="app">
+  <app-nav></app-nav>
+  <app-view>
+    <app-sidebar></app-sidebar>
+    <app-content></app-content>
+  </app-view>
+</div>
+----
+
