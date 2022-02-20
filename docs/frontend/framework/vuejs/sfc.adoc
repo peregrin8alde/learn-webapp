@@ -1,0 +1,50 @@
+= 単一ファイルコンポーネント
+
+* https://v3.ja.vuejs.org/guide/single-file-component.html#%E5%8D%98%E4%B8%80%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%B3%E3%83%B3%E3%83%9B%E3%82%9A%E3%83%BC%E3%83%8D%E3%83%B3%E3%83%88[概要]
+* https://v3.ja.vuejs.org/api/sfc-spec.html[仕様]
+
+[source]
+----
+<script>
+export default {
+  data() {
+    return {
+      greeting: 'Hello World!'
+    }
+  }
+}
+</script>
+
+<template>
+  <p class="greeting">{{ greeting }}</p>
+</template>
+
+<style>
+.greeting {
+  color: red;
+  font-weight: bold;
+}
+</style>
+----
+
+[source,javascript]
+----
+import MyComponent from './MyComponent.vue'
+
+export default {
+  components: {
+    MyComponent
+  }
+}
+----
+
+== SFC ツール
+
+* https://v3.ja.vuejs.org/api/sfc-tooling.html#sfc-%E3%83%84%E3%83%BC%E3%83%AB[SFC ツール]
+
+.各種ツール
+* https://vitejs.dev/[Vite]
+* https://cli.vuejs.org/[Vue CLI]
+* https://github.com/vuejs/core/tree/main/packages/compiler-sfc[@vue/compiler-sfc]
+* https://github.com/vitejs/vite/tree/main/packages/plugin-vue[@vitejs/plugin-vue]
+* https://vue-loader.vuejs.org/[vue-loader]

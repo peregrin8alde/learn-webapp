@@ -1,0 +1,181 @@
+= webpack
+
+* https://webpack.js.org/[webpack]
+
+大規模な JavaScript アプリケーション開発において、様々なファイルやモジュールを作成する
+場合にファイルやモジュールを統合することで、通信回数を軽減したりモジュール間の競合などを
+回避する。
+
+== Getting Started
+
+* https://webpack.js.org/guides/getting-started/[Getting Started]
+
+=== Basic Setup
+
+[source,shell]
+----
+mkdir webpack-demo
+cd webpack-demo
+npm init -y
+npm install webpack webpack-cli --save-dev
+----
+
+以下のようなファイルを作成する。
+
+.src/index.js
+[source,javascript]
+----
+function component() {
+  const element = document.createElement('div');
+
+  // Lodash, currently included via a script, is required for this line to work
+  element.innerHTML = _.join(['Hello', 'webpack'], ' ');
+
+  return element;
+}
+
+document.body.appendChild(component());
+----
+
+.index.html
+[source,html]
+----
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting Started</title>
+    <script src="https://unpkg.com/lodash@4.17.20"></script>
+  </head>
+  <body>
+    <script src="./src/index.js"></script>
+  </body>
+</html>
+----
+
+パッケージを private に変更する。
+
+.package.json （修正前）
+[source,json]
+----
+  "main": "index.js",
+----
+
+.package.json （修正後）
+[source,json]
+----
+  "private": true,
+----
+
+[source,shell]
+----
+sed -i -e 's/"main": "index.js"/"private": true/g' package.json
+----
+
+=== Creating a Bundle
+
+配布物を分かりやすくするために、ディレクトリ構成を変更する。
+`dist` 配下に置くこととする。
+
+[source,shell]
+----
+mkdir -p dist
+mv index.html dist/
+----
+
+バンドルするモジュールをインストールする。
+
+[source,shell]
+----
+npm install --save lodash
+----
+
+ソースの内容を変更する。
+
+.src/index.js
+[source,javascript]
+----
+import _ from 'lodash';
+
+function component() {
+  const element = document.createElement('div');
+
+  // Lodash, now imported by this script
+  element.innerHTML = _.join(['Hello', 'webpack'], ' ');
+
+  return element;
+}
+
+document.body.appendChild(component());
+----
+
+.dist/index.html
+[source,html]
+----
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Getting Started</title>
+  </head>
+  <body>
+    <script src="main.js"></script>
+  </body>
+</html>
+----
+
+webpack を実行する。
+
+[source,shell]
+----
+npx webpack
+----
+
+=== Using a Configuration
+
+設定ファイルを利用する。
+
+.webpack.config.js
+[source,javascript]
+----
+const path = require('path');
+
+module.exports = {
+  entry: './src/index.js',
+  output: {
+    filename: 'main.js',
+    path: path.resolve(__dirname, 'dist'),
+  },
+};
+----
+
+[source,shell]
+----
+npx webpack --config webpack.config.js
+----
+
+=== NPM Scripts
+
+NPM スクリプトを利用する。
+
+.package.json （修正前）
+[source,json]
+----
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+----
+
+.package.json （修正後）
+[source,json]
+----
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+----
+
+[source,shell]
+----
+npm run build
+----

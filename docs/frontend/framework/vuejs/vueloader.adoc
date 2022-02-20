@@ -1,0 +1,73 @@
+= Vue Loader
+
+* https://vue-loader.vuejs.org/[Vue Loader]
+
+== Getting Started
+
+* https://vue-loader.vuejs.org/guide/#getting-started[Getting Started]
+
+.インストール
+[source,shell]
+----
+npm install -D vue-loader vue-template-compiler
+----
+
+.webpack.config.js の例
+[source,javascript]
+----
+const { VueLoaderPlugin } = require('vue-loader')
+
+module.exports = {
+  module: {
+    rules: [
+      // ... other rules
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      }
+    ]
+  },
+  plugins: [
+    // make sure to include the plugin!
+    new VueLoaderPlugin()
+  ]
+}
+----
+
+.webpack.config.js の詳細な例
+[source,javascript]
+----
+const { VueLoaderPlugin } = require('vue-loader')
+
+module.exports = {
+  mode: 'development',
+  module: {
+    rules: [
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader'
+      },
+      // this will apply to both plain `.js` files
+      // AND `<script>` blocks in `.vue` files
+      {
+        test: /\.js$/,
+        loader: 'babel-loader'
+      },
+      // this will apply to both plain `.css` files
+      // AND `<style>` blocks in `.vue` files
+      {
+        test: /\.css$/,
+        use: [
+          'vue-style-loader',
+          'css-loader'
+        ]
+      }
+    ]
+  },
+  plugins: [
+    // make sure to include the plugin for the magic
+    new VueLoaderPlugin()
+  ]
+}
+----
+
