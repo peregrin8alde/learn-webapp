@@ -1,0 +1,12 @@
+= Vite
+
+* https://vitejs.dev/[Vite]
+
+== Getting Started
+
+* https://vitejs.dev/guide/[Getting Started]
+
+[source,shell]
+----
+npm create vite@latest
+----

@@ -48,3 +48,8 @@ export default {
 * https://github.com/vuejs/core/tree/main/packages/compiler-sfc[@vue/compiler-sfc]
 * https://github.com/vitejs/vite/tree/main/packages/plugin-vue[@vitejs/plugin-vue]
 * https://vue-loader.vuejs.org/[vue-loader]
+
+[quote]
+____
+開発サーバの起動や HMR の更新パフォーマンスの点で、開発体験が大幅に向上するため、Vite で新しいプロジェクトを開始することをおすすめします（ https://vitejs.dev/guide/why.html[詳細] ）。特定の webpack の機能（Module Federation など）に依存する場合にのみ、Vue CLI を使用してください。
+____
