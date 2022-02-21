@@ -1,10 +1,7 @@
 import { createApp,h } from 'vue'
-import MyComponent from './component/MyComponent.vue'
+import App from './component/App.vue'
 
-const app = createApp({})
+const app = createApp(App)
 // 必要な事前処理を実行
 
-// オブジェクトの登録
-app.component('my-component', MyComponent)
-
-app.mount('#my-app')
+app.mount('#app')

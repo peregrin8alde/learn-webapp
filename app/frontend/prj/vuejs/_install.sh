@@ -43,19 +43,16 @@ mkdir -p src
 
 tee src/index.js <<'EOF' >> /dev/null
 import { createApp,h } from 'vue'
-import MyComponent from './component/MyComponent.vue'
+import App from './component/App.vue'
 
-const app = createApp({})
+const app = createApp(App)
 // 必要な事前処理を実行
 
-// オブジェクトの登録
-app.component('my-component', MyComponent)
-
-app.mount('#my-app')
+app.mount('#app')
 EOF
 
 mkdir -p src/component
-tee src/component/MyComponent.vue <<'EOF' >> /dev/null
+tee src/component/App.vue <<'EOF' >> /dev/null
 <script>
 export default {
   data() {
@@ -88,9 +85,7 @@ tee dist/index.html <<'EOF' >> /dev/null
   </head>
 
   <body>
-    <div id="my-app">
-      <my-component></my-component>
-    </div>
+    <div id="app"></div>
 
     <script src="main.js"></script>
   </body>
@@ -135,7 +130,7 @@ module.exports = {
   ],
   resolve: {
     alias: {
-      vue$: 'vue/dist/vue.esm-bundler.js'
+      //vue$: 'vue/dist/vue.esm-bundler.js'
     }
   }
 };

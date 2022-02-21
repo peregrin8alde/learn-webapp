@@ -36,7 +36,7 @@ npm install vue@next
 ** https://v3.ja.vuejs.org/guide/installation.html#%E3%83%8F%E3%82%99%E3%83%B3%E3%83%88%E3%82%99%E3%83%A9%E3%83%BC%E3%82%92%E4%BD%BF%E3%81%86%E5%A0%B4%E5%90%88[バンドラーを使う場合]
 はデフォルトだとランタイムのみでテンプレートの事前コンパイルが必要。そのため、 https://v3.ja.vuejs.org/guide/single-file-component.html#%E5%8D%98%E4%B8%80%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%B3%E3%83%B3%E3%83%9B%E3%82%9A%E3%83%BC%E3%83%8D%E3%83%B3%E3%83%88[単一ファイルコンポーネント] を参照すること。
 *** `vue.esm-bundler.js` や `render()` を使う方法もある。
-*** トラブル： `vue-loader` を使ってるのに `vue.esm-bundler.js` を使わないと表示されない。
+*** `index.html` 側には一切テンプレート構文を使わず `<div id="app"></div>` といったルートになるマウントポイントだけ記述し、他は全て `.vue` 側で記述するように注意。
 ** https://v3.ja.vuejs.org/api/application-api.html#%E3%82%A2%E3%83%95%E3%82%9A%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3-api[アプリケーション API] も参照
 * 公式のプロジェクト構築用 CLI で構築
 ** 参照 : https://v3.ja.vuejs.org/guide/installation.html#cli[CLI]
