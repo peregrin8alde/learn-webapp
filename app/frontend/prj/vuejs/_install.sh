@@ -23,17 +23,17 @@ npm init -y
 
 # install
 ## webpack
-npm install webpack webpack-cli --save-dev
+npm install --save-dev webpack webpack-cli
 
 ## vue
 npm install vue@next
-npm install -D @vue/compiler-sfc
+npm install --save-dev @vue/compiler-sfc
 
 ## vue-loader
-npm install -D vue-loader vue-template-compiler
+npm install --save-dev vue-loader vue-template-compiler
 
 ## babel-loader
-npm install -D babel-loader @babel/core @babel/preset-env
+npm install --save-dev babel-loader @babel/core @babel/preset-env
 
 ## vue-style-loader, css-loader
 npm install --save-dev vue-style-loader css-loader
