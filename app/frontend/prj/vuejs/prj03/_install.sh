@@ -3,7 +3,7 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
 PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
-BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
+BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../.." && pwd)
 
 # npm は Docker コンテナ利用
 npm () {
@@ -42,8 +42,8 @@ npm install --save-dev vue-style-loader css-loader
 mkdir -p src
 
 tee src/index.js <<'EOF' >> /dev/null
-import { createApp,h } from 'vue'
-import App from './component/App.vue'
+import { createApp } from 'vue'
+import App from './App.vue'
 
 const app = createApp(App)
 // 必要な事前処理を実行
@@ -51,8 +51,30 @@ const app = createApp(App)
 app.mount('#app')
 EOF
 
-mkdir -p src/component
-tee src/component/App.vue <<'EOF' >> /dev/null
+mkdir -p src
+tee src/App.vue <<'EOF' >> /dev/null
+<script>
+import HelloWorld from './components/HelloWorld.vue'
+
+export default {
+  components: {
+    HelloWorld
+  }
+}
+</script>
+
+<template>
+  <h1>アプリケーション</h1>
+  <HelloWorld />
+</template>
+
+<style>
+
+</style>
+EOF
+
+mkdir -p src/components
+tee src/components/HelloWorld.vue <<'EOF' >> /dev/null
 <script>
 export default {
   data() {
