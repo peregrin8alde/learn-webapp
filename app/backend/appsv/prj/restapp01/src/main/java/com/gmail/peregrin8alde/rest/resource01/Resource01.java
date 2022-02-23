@@ -67,13 +67,18 @@ public class Resource01 {
 
         String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.type", String.class);
 
-        /* トークンからユーザー情報取得 */
-        JsonObject tokenPayload = getTokenPayload(headers);
-        String userId = tokenPayload.getString("sub");
+        String userId = "public";
+        String auth = headers.getHeaderString("Authorization");
+        if (auth != null) {
+            /* トークンからユーザー情報取得 */
+            JsonObject tokenPayload = getTokenPayload(headers);
+            userId = tokenPayload.getString("sub");
+        }
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
         if (storageType.equals("file")) {
-            String rootDir = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.file.rootdir", String.class);
+            String rootDir = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.file.rootdir",
+                    String.class);
             if (userId.equals("anonymous")) {
                 /* 匿名アクセスや公開リソース向け */
                 bookStorage = new LocalFileSystemStorage(rootDir);
@@ -96,7 +101,8 @@ public class Resource01 {
                     bookStorage.setNameSpace(userId);
                 } catch (StorageException e) {
                     e.printStackTrace();
-                };
+                }
+                ;
             }
         }
     }
@@ -253,26 +259,29 @@ public class Resource01 {
         }
     }
 
-
     private JsonObject getTokenPayload(HttpHeaders headers) {
 
         //System.out.println("headers");
-        //System.out.println(headers.getHeaderString("Authorization"));
-        String bearerToken = headers.getHeaderString("Authorization").substring("Bearer ".length());
+        String auth = headers.getHeaderString("Authorization");
+
+        //System.out.println(auth);
+        String bearerToken = auth.substring("Bearer ".length());
         //System.out.println("token:" + bearerToken + ":");
 
         String infos[] = bearerToken.split("\\.");
 
-        try (JsonReader jsonReader = Json.createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[0]))))) {
+        try (JsonReader jsonReader = Json
+                .createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[0]))))) {
             JsonObject jwtHeader = jsonReader.readObject();
 
-            //System.out.println("jwtHeader:" + jwtHeader.toString());
+            // System.out.println("jwtHeader:" + jwtHeader.toString());
         }
- 
-        try (JsonReader jsonReader = Json.createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[1]))))) {
+
+        try (JsonReader jsonReader = Json
+                .createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[1]))))) {
             JsonObject tokenPayload = jsonReader.readObject();
 
-            //System.out.println("tokenPayload:" + tokenPayload.toString());
+            // System.out.println("tokenPayload:" + tokenPayload.toString());
 
             return tokenPayload;
         }
