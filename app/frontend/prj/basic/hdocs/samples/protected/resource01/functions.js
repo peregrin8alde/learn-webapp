@@ -12,6 +12,10 @@ function initKeycloak() {
     });
 }
 
+function logout() {
+    keycloak.logout();
+}
+
 function fetchPost(form) {
     const url = base_url;
 

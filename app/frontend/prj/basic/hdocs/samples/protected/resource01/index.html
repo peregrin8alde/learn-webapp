@@ -11,6 +11,10 @@
 <body onload="initKeycloak()">
     <h1>Sample page</h1>
 
+    <form name="logoutForm" onsubmit="logout(); return false">
+        <p><button>logout</button></p>
+    </form>
+
     <form name="create" onsubmit="fetchPost(this); return false">
         <p><label>title: <input name="title"></label></p>
         <p>Response: <output name=result></output></p>
