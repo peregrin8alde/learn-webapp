@@ -11,6 +11,8 @@
 === JavaScript (client-side)
 
 * https://www.keycloak.org/docs/16.1/securing_apps/index.html#_javascript_adapter[2.2. JavaScript adapter]
+* https://www.keycloak.org/securing-apps/vue[Vue.js での実装例]
+** `npm i keycloak-js --save` は実施せず、サーバーから js を取得した方が安全かと思われる。
 
 Keycloak サーバーの `/auth/js/keycloak.js` から直接取得可能。
 前もってダウンロードする場合は以下のように Keycloak サーバーにアクセスする。

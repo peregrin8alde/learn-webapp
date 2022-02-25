@@ -14,18 +14,19 @@ export default {
         DeleteBook,
     },
     props: {
-        baseUrl: String
+        baseUrl: String,
+        token: String
     },
 }
 </script>
 
 <template>
     <!-- 動的な値を受け渡す場合は v-bind: か : を付けてパラメタ名（ケバブケース） -->
-    <CreateBook :base-url="baseUrl" />
-    <ReadBooks :base-url="baseUrl" />
-    <ReadBook :base-url="baseUrl" />
-    <UpdateBook :base-url="baseUrl" />
-    <DeleteBook :base-url="baseUrl" />
+    <CreateBook :base-url="baseUrl" :token="token" />
+    <ReadBooks :base-url="baseUrl" :token="token" />
+    <ReadBook :base-url="baseUrl" :token="token" />
+    <UpdateBook :base-url="baseUrl" :token="token" />
+    <DeleteBook :base-url="baseUrl" :token="token" />
 </template>
 
 <style>

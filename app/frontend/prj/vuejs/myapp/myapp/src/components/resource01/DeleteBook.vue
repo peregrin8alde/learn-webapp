@@ -2,7 +2,8 @@
 // vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
-        baseUrl: String
+        baseUrl: String,
+        token: String
     },
     data() {
         return {
@@ -21,7 +22,8 @@ export default {
             fetch(url, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.token,
                 }
             }).then(response => {
                 console.log('Success:', response)

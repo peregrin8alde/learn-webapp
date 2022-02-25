@@ -2,7 +2,8 @@
 // vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
-        baseUrl: String
+        baseUrl: String,
+        token: String
     },
     data() {
         return {
@@ -19,7 +20,10 @@ export default {
             const url = this.baseUrl + '/' + this.id
 
             fetch(url, {
-                method: 'GET'
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + this.token,
+                }
             }).then(response => {
                 return response.json()
             }).then(json => {
