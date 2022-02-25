@@ -1,7 +1,8 @@
 <script>
+// vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
-        base_url: String
+        baseUrl: String
     },
     data() {
         return {
@@ -11,21 +12,32 @@ export default {
     },
     methods: {
         create(event) {
-            // メソッド内の `this` は、 Vue インスタンスを参照します
-            console.log('base_url: ' + this.base_url)
+            console.log('baseUrl: ' + this.baseUrl)
             console.log('title: ' + this.title)
 
-            let dummy = this.base_url + '/' + "0001"
-            
+            const url = this.baseUrl
+
             let data = {}
             data['title'] = this.title
 
-            this.result = dummy
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+            }).then(response => {
+                // POST はリソースを作成してその結果のリソース URI を Location ヘッダで返す
+                console.log('Success:', response)
 
-            // `event` は、ネイティブ DOM イベントです
-            if (event) {
-                console.log(event.target.tagName)
-            }
+                // レスポンスヘッダで Access-Control-Expose-Headers に指定しないと Fetch API で Location が見れなかった
+                const uri = response.headers.get('Location')
+                console.log('uri:', uri)
+
+                this.result = uri
+            }).catch(error => {
+                console.error('Error:', error)
+            })
         }
     }
 }

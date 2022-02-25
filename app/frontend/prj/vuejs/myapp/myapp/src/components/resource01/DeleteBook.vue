@@ -1,7 +1,8 @@
 <script>
+// vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
-        base_url: String
+        baseUrl: String
     },
     data() {
         return {
@@ -12,17 +13,23 @@ export default {
     methods: {
         deleteById(event) {
             // メソッド内の `this` は、 Vue インスタンスを参照します
-            console.log('base_url: ' + this.base_url)
+            console.log('baseUrl: ' + this.baseUrl)
             console.log('id: ' + this.id)
 
-            let dummy = 204
+            const url = this.baseUrl + '/' + this.id
 
-            this.result = dummy
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                console.log('Success:', response)
 
-            // `event` は、ネイティブ DOM イベントです
-            if (event) {
-                console.log(event.target.tagName)
-            }
+                this.result = response.status
+            }).catch(error => {
+                console.error('Error:', error)
+            })
         }
     }
 }

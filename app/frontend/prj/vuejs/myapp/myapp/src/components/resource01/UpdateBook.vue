@@ -1,7 +1,8 @@
 <script>
+// vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
-        base_url: String
+        baseUrl: String
     },
     data() {
         return {
@@ -13,20 +14,29 @@ export default {
     methods: {
         updateById(event) {
             // メソッド内の `this` は、 Vue インスタンスを参照します
-            console.log('base_url: ' + this.base_url)
+            console.log('baseUrl: ' + this.baseUrl)
             console.log('id: ' + this.id)
             console.log('title: ' + this.title)
 
-            let dummy = 204
+            const url = this.baseUrl + '/' + this.id
 
-            const url = this.base_url + '/' + this.id;
+            let data = {}
+            data['id'] = this.id
+            data['title'] = this.title
 
-            this.result = dummy
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+            }).then(response => {
+                console.log('Success:', response)
 
-            // `event` は、ネイティブ DOM イベントです
-            if (event) {
-                console.log(event.target.tagName)
-            }
+                this.result = response.status
+            }).catch(error => {
+                console.error('Error:', error)
+            })
         }
     }
 }

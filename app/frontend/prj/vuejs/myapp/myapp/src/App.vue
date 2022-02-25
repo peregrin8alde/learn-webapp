@@ -6,7 +6,8 @@ import Resource01 from './components/Resource01.vue'
 
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
-  <Resource01 />
+  <!-- HTML 内ではケバブケース -->
+  <Resource01 base-url="http://localhost:8000/restapp01/books" />
 </template>
 
 <style>
