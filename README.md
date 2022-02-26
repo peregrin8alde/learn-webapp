@@ -20,7 +20,7 @@ Webアプリ開発関連技術の勉強用
 
 ## システム構成
 
-![鳥瞰図](images/birds-eye-view.svg)
+![鳥瞰図](docs/images/birds-eye-view.svg)
 
 - 環境
   - 開発環境
