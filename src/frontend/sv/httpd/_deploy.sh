@@ -3,14 +3,13 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
 PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
-BASE_DIR=${SCRIPT_DIR}/../../../../../..
-TARGET_DIR=${BASE_DIR}/deploy/backend/log/management/sv/logstash
+BASE_DIR=${SCRIPT_DIR}/../../../..
+TARGET_DIR=${BASE_DIR}/deploy/frontend/sv/httpd
 
 mkdir -p ${TARGET_DIR}
 
 rsync -avh ${SCRIPT_DIR}/dist/bin ${TARGET_DIR} --delete
 rsync -avh ${SCRIPT_DIR}/dist/config ${TARGET_DIR} --delete
-rsync -avh ${SCRIPT_DIR}/dist/pipeline ${TARGET_DIR} --delete
 
 
 exit 0
