@@ -3,6 +3,8 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
 PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
+KEY_DIR=${PARENT_DIR}/../../config/key
+
 # function
 ## id だけを表示
 show_id() {
@@ -69,7 +71,7 @@ fi
 curl -s -X POST \
   http://localhost:8001/consumers/keycloak_id/jwt \
   -F "algorithm=RS256" \
-  -F "rsa_public_key=@${SCRIPT_DIR}/keys/keycloak_myrealm_rs256_pub.pem" \
+  -F "rsa_public_key=@${KEY_DIR}/keycloak_myrealm_rs256_pub.pem" \
   -F "key=http://localhost:8080/auth/realms/myrealm"
 
 
