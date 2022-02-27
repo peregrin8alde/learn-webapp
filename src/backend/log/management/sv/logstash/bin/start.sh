@@ -5,13 +5,15 @@ PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
 DOCKER_NETWORK="webapp-net"
 
-if [ -z $(docker network ls | grep -w "${DOCKER_NETWORK}" | awk '{print $2}') ]; then
+LOGS_DIR="${PARENT_DIR}/logs"
+
+PIPELINE_DIR="${PARENT_DIR}/pipeline"
+CONFIG_DIR="${PARENT_DIR}/config"
+
+# --filter は golang の正規表現でフィルタ、 -q は id だけ表示
+if [ -z "$(docker network ls --filter name="^${DOCKER_NETWORK}$" -q)" ]; then
   docker network create "${DOCKER_NETWORK}"
 fi
-
-mkdir -p "$SCRIPT_DIR/pipeline"
-mkdir -p "$SCRIPT_DIR/config"
-mkdir -p "$SCRIPT_DIR/logs"
 
 docker run \
   --name=webapp_logstash \
@@ -20,9 +22,9 @@ docker run \
   --rm \
   -d \
   -p 5044:5044 \
-  -v "$SCRIPT_DIR/pipeline/":/usr/share/logstash/pipeline/ \
-  -v "$SCRIPT_DIR/config/":/usr/share/logstash/config/ \
-  -v "$SCRIPT_DIR/logs":/logs \
+  -v "${PIPELINE_DIR}":/usr/share/logstash/pipeline \
+  -v "${CONFIG_DIR}":/usr/share/logstash/config \
+  -v "${LOGS_DIR}":/logs \
   docker.elastic.co/logstash/logstash:7.16.3
 
 
