@@ -48,6 +48,8 @@ public class DatabaseStorage extends AbstractStorage {
     }
 
     public void setNameSpace(String nameSpace) throws StorageException {
+        super.setNameSpace(nameSpace);
+
         Connection conn = null;
         try {
             conn = myDB.getConnection();
@@ -63,8 +65,6 @@ public class DatabaseStorage extends AbstractStorage {
                 }
             }
         }
-
-        super.setNameSpace(nameSpace);
     }
 
     /* Create */
@@ -306,9 +306,12 @@ public class DatabaseStorage extends AbstractStorage {
         try {
             createUserShema(conn);
 
+            String sql = "CREATE TABLE IF NOT EXISTS \"" + super.getNameSpace() + "\"." + bookTblName
+                    + "(id varchar(256) PRIMARY KEY, title varchar(1024))";
+            System.out.println(sql);
+
             Statement st = conn.createStatement();
-            st.execute("CREATE TABLE IF NOT EXISTS \"" + super.getNameSpace() + "\"." + bookTblName
-                    + "(id varchar(256) PRIMARY KEY, title varchar(1024))");
+            st.execute(sql);
         } catch (SQLException e) {
             throw new StorageException(e.getMessage());
         } finally {
@@ -318,8 +321,11 @@ public class DatabaseStorage extends AbstractStorage {
 
     private void createUserShema(Connection conn) throws StorageException {
         try {
+            String sql = "CREATE SCHEMA IF NOT EXISTS \"" + super.getNameSpace() + "\"";
+            System.out.println(sql);
+
             Statement st = conn.createStatement();
-            st.execute("CREATE SCHEMA IF NOT EXISTS \"" + super.getNameSpace() + "\"");
+            st.execute(sql);
         } catch (SQLException e) {
             throw new StorageException(e.getMessage());
         } finally {

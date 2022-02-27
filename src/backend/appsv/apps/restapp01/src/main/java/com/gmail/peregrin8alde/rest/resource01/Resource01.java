@@ -67,13 +67,14 @@ public class Resource01 {
 
         String storageType = config.getValue("com.gmail.peregrin8alde.rest.resource01.storage.type", String.class);
 
-        String userId = "public";
+        String userId = "anonymous";
         String auth = headers.getHeaderString("Authorization");
         if (auth != null) {
             /* トークンからユーザー情報取得 */
             JsonObject tokenPayload = getTokenPayload(headers);
             userId = tokenPayload.getString("sub");
         }
+        System.out.println(userId);
 
         /* リソースクラスはリクエストのたびにインスタンスが作成されることに注意 */
         if (storageType.equals("file")) {
@@ -272,7 +273,7 @@ public class Resource01 {
 
         try (JsonReader jsonReader = Json
                 .createReader(new StringReader(new String(Base64.getUrlDecoder().decode(infos[0]))))) {
-            JsonObject jwtHeader = jsonReader.readObject();
+            //JsonObject jwtHeader = jsonReader.readObject();
 
             // System.out.println("jwtHeader:" + jwtHeader.toString());
         }
