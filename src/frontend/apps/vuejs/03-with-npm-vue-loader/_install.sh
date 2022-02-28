@@ -9,6 +9,7 @@ BASE_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/../.." && pwd)
 npm () {
   docker run \
     --rm \
+    -u node \
     -v npm_modules:/usr/local/lib/node_modules \
     -v "$(pwd):$(pwd)" \
     -w $(pwd) \
@@ -159,11 +160,6 @@ module.exports = {
 EOF
 
 # etc
-# npm コンテナ利用字に package.json などが root 権限で作成されるため、
-# 権限変更
-sudo chown -R $(id -u):$(id -g) package*
-
-# webpack
 sed -i -e 's/"main": "index.js"/"private": true/g' package.json
 
 
