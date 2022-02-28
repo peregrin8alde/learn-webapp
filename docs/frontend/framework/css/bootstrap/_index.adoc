@@ -38,3 +38,136 @@ import bootstrap from 'bootstrap'
 
 なお、 https://github.com/twbs/bootstrap-npm-starter[スタータープロジェクト] は
 古そう（更新が１年近く前で Bootstrap のメジャーバージョンが１つ前）なため利用せず。
+
+=== webpack
+
+参考: https://getbootstrap.jp/docs/5.0/getting-started/webpack/[Webpack と bundlers]
+
+.インストール
+. 初期化
++
+[source,shell]
+----
+mkdir bootstrap-webpack
+
+cd bootstrap-webpack
+npm init -y
+----
+. webpack インストール
++
+[source,shell]
+----
+npm install webpack webpack-cli --save-dev
+----
+. bootstrap インストール
++
+[source,shell]
+----
+npm install bootstrap
+----
+. 依存ツールのインストール
++
+[source,shell]
+----
+# peerDependencies
+npm install @popperjs/core
+
+# loader （ Bootstrap をカスタマイズする場合）
+npm install sass-loader sass webpack --save-dev
+npm install --save-dev postcss-loader postcss
+npm install postcss postcss-cli autoprefixer
+
+# loader （ Bootstrap をそのまま使用する場合）
+npm install --save-dev style-loader
+npm install --save-dev css-loader
+----
+
+.設定・利用
+* JavaScript インポート
++
+.index.js または app.js
+[source,javascript]
+----
+// You can specify which plugins you need
+import { Tooltip, Toast, Popover } from "bootstrap";
+----
+* プリコンパイルされた Sass のインポート（ Bootstrap をカスタマイズする場合）
++
+.index.js または app.js
+[source,javascript]
+----
+@import "custom";
+@import "~bootstrap/scss/bootstrap";
+----
++
+.webpack.config.js
+[source,javascript]
+----
+// ...
+{
+  test: /\.(scss)$/,
+  use: [{
+    // inject CSS to page
+    loader: 'style-loader'
+  }, {
+    // translates CSS into CommonJS modules
+    loader: 'css-loader'
+  }, {
+    // Run postcss actions
+    loader: 'postcss-loader',
+    options: {
+      // `postcssOptions` is needed for postcss 8.x;
+      // if you use postcss 7.x skip the key
+      postcssOptions: {
+        // postcss plugins, can be exported to postcss.config.js
+        plugins: function () {
+          return [
+            require('autoprefixer')
+          ];
+        }
+      }
+    }
+  }, {
+    // compiles Sass to CSS
+    loader: 'sass-loader'
+  }]
+}
+// ...
+----
+* コンパイルされた CSS のインポート（ Bootstrap をそのまま使用する場合）
++
+.index.js または app.js
+[source,javascript]
+----
+import "bootstrap/dist/css/bootstrap.min.css";
+----
++
+.webpack.config.js
+[source,javascript]
+----
+// ...
+module: {
+  rules: [
+    {
+      test: /\.css$/,
+      use: ["style-loader", "css-loader"],
+    },
+  ];
+}
+// ...
+----
+* モジュールとしての利用
++
+参考: https://getbootstrap.jp/docs/5.0/getting-started/javascript/[JavaScript]
++
+.index.js または app.js
+[source,javascript]
+----
+<script type="module">
+  import { Toast } from "bootstrap.esm.min.js";
+
+  Array.from(document.querySelectorAll(".toast")).forEach(
+    (toastNode) => new Toast(toastNode)
+  );
+</script>
+----
