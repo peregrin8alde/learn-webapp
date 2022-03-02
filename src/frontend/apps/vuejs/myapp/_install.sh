@@ -28,5 +28,7 @@ npm create vite@latest ${APP_NAME} -- --template vue
 cd ${SCRIPT_DIR}/${APP_NAME}
 npm install
 
+npm install bootstrap @popperjs/core
+
 
 exit 0

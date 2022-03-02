@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import "bootstrap/dist/css/bootstrap.min.css";
 
 let initOptions = {
     url: 'http://localhost:8080/auth', realm: 'myrealm', clientId: 'kong-consumer', onLoad: 'login-required'
