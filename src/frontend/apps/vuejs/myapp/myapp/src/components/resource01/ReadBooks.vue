@@ -28,7 +28,7 @@ export default {
 
                 this.result['status'] = response.status
                 this.result['statusText'] = response.statusText
-                
+
                 return response.json()
             }).then(json => {
                 this.result['json'] = json
@@ -47,9 +47,8 @@ export default {
         <p>
             Response:
             <output>
-                <span v-if="result.status === 201">
-                    <p>status: {{ result.status }}</p>
-                    <p>url: {{ result.url }}</p>
+                <span v-if="result.status === 200">
+                    <div v-for="item in result.json">{{ item }}</div>
                 </span>
                 <span v-else>{{ result }}</span>
             </output>
