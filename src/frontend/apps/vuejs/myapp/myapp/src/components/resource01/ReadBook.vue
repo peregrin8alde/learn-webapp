@@ -37,19 +37,21 @@ export default {
 </script>
 
 <template>
-    <p>
-        <label>
-            id:
-            <input v-model="id" placeholder="enter the book id" />
-        </label>
-    </p>
-    <p>
-        Response:
-        <output>{{ result }}</output>
-    </p>
-    <p>
-        <button @click="readById">readById</button>
-    </p>
+    <form name="read-book">
+        <p>
+            <label>
+                id:
+                <input v-model="id" placeholder="enter the book id" />
+            </label>
+        </p>
+        <p>
+            Response:
+            <output>{{ result }}</output>
+        </p>
+        <p>
+            <button type="button" @click="readById">readById</button>
+        </p>
+    </form>
 </template>
 
 <style scoped>

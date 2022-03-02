@@ -45,25 +45,27 @@ export default {
 </script>
 
 <template>
-    <p>
-        <label>
-            id:
-            <input v-model="id" placeholder="enter the book id" />
-        </label>
-    </p>
-    <p>
-        <label>
-            title:
-            <input v-model="title" placeholder="enter the book title" />
-        </label>
-    </p>
-    <p>
-        Response:
-        <output>{{ result }}</output>
-    </p>
-    <p>
-        <button @click="updateById">updateById</button>
-    </p>
+    <form name="update-book">
+        <p>
+            <label>
+                id:
+                <input v-model="id" placeholder="enter the book id" />
+            </label>
+        </p>
+        <p>
+            <label>
+                title:
+                <input v-model="title" placeholder="enter the book title" />
+            </label>
+        </p>
+        <p>
+            Response:
+            <output>{{ result }}</output>
+        </p>
+        <p>
+            <button type="button" @click="updateById">updateById</button>
+        </p>
+    </form>
 </template>
 
 <style scoped>

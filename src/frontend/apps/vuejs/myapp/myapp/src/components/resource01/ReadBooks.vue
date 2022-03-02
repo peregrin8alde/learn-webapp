@@ -34,13 +34,15 @@ export default {
 </script>
 
 <template>
-    <p>
-        Response:
-        <output>{{ result }}</output>
-    </p>
-    <p>
-        <button @click="readAll">readAll</button>
-    </p>
+    <form name="read-books">
+        <p>
+            Response:
+            <output>{{ result }}</output>
+        </p>
+        <p>
+            <button type="button" @click="readAll">readAll</button>
+        </p>
+    </form>
 </template>
 
 <style scoped>
