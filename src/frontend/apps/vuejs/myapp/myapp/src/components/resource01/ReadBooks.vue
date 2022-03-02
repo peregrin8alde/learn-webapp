@@ -12,6 +12,8 @@ export default {
     },
     methods: {
         readAll(event) {
+            this.result = {}
+
             console.log('baseUrl: ' + this.baseUrl)
 
             const url = this.baseUrl
@@ -22,11 +24,18 @@ export default {
                     'Authorization': 'Bearer ' + this.token,
                 }
             }).then(response => {
+                console.log('Success:', response)
+
+                this.result['status'] = response.status
+                this.result['statusText'] = response.statusText
+                
                 return response.json()
             }).then(json => {
-                this.result = json
+                this.result['json'] = json
             }).catch(error => {
                 console.error('Error:', error)
+
+                this.result['error'] = error
             })
         }
     }
@@ -37,10 +46,16 @@ export default {
     <form name="read-books">
         <p>
             Response:
-            <output>{{ result }}</output>
+            <output>
+                <span v-if="result.status === 201">
+                    <p>status: {{ result.status }}</p>
+                    <p>url: {{ result.url }}</p>
+                </span>
+                <span v-else>{{ result }}</span>
+            </output>
         </p>
         <p>
-            <button type="button" @click="readAll">readAll</button>
+            <button type="button" class="btn btn-primary" @click="readAll">readAll</button>
         </p>
     </form>
 </template>

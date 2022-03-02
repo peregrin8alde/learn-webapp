@@ -8,11 +8,13 @@ export default {
     data() {
         return {
             title: '',
-            result: ''
+            result: {}
         }
     },
     methods: {
         create(event) {
+            this.result = {}
+
             console.log('baseUrl: ' + this.baseUrl)
             console.log('title: ' + this.title)
 
@@ -32,13 +34,18 @@ export default {
                 // POST はリソースを作成してその結果のリソース URI を Location ヘッダで返す
                 console.log('Success:', response)
 
+                this.result['status'] = response.status
+                this.result['statusText'] = response.statusText
+
                 // レスポンスヘッダで Access-Control-Expose-Headers に指定しないと Fetch API で Location が見れなかった
                 const uri = response.headers.get('Location')
                 console.log('uri:', uri)
 
-                this.result = uri
+                this.result['url'] = uri
             }).catch(error => {
                 console.error('Error:', error)
+
+                this.result['error'] = error
             })
         }
     }
@@ -55,10 +62,16 @@ export default {
         </p>
         <p>
             Response:
-            <output>{{ result }}</output>
+            <output>
+                <span v-if="result.status === 201">
+                    <p>status: {{ result.status }}</p>
+                    <p>url: {{ result.url }}</p>
+                </span>
+                <span v-else>{{ result }}</span>
+            </output>
         </p>
         <p>
-            <button type="button" @click="create">create</button>
+            <button type="button" class="btn btn-primary" @click="create">create</button>
         </p>
     </form>
 </template>

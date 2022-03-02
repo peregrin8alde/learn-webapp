@@ -14,7 +14,8 @@ export default {
     },
     methods: {
         updateById(event) {
-            // メソッド内の `this` は、 Vue インスタンスを参照します
+            this.result = {}
+
             console.log('baseUrl: ' + this.baseUrl)
             console.log('id: ' + this.id)
             console.log('title: ' + this.title)
@@ -35,9 +36,12 @@ export default {
             }).then(response => {
                 console.log('Success:', response)
 
-                this.result = response.status
+                this.result['status'] = response.status
+                this.result['statusText'] = response.statusText
             }).catch(error => {
                 console.error('Error:', error)
+
+                this.result['error'] = error
             })
         }
     }
@@ -60,10 +64,15 @@ export default {
         </p>
         <p>
             Response:
-            <output>{{ result }}</output>
+            <output>
+                <span v-if="result.status === 204">
+                    <p>status: {{ result.status }}</p>
+                </span>
+                <span v-else>{{ result }}</span>
+            </output>
         </p>
         <p>
-            <button type="button" @click="updateById">updateById</button>
+            <button type="button" class="btn btn-primary" @click="updateById">updateById</button>
         </p>
     </form>
 </template>

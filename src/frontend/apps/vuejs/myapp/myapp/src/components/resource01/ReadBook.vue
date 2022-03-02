@@ -13,7 +13,8 @@ export default {
     },
     methods: {
         readById(event) {
-            // メソッド内の `this` は、 Vue インスタンスを参照します
+            this.result = {}
+
             console.log('baseUrl: ' + this.baseUrl)
             console.log('id: ' + this.id)
 
@@ -25,11 +26,18 @@ export default {
                     'Authorization': 'Bearer ' + this.token,
                 }
             }).then(response => {
+                console.log('Success:', response)
+
+                this.result['status'] = response.status
+                this.result['statusText'] = response.statusText
+
                 return response.json()
             }).then(json => {
-                this.result = json
+                this.result['json'] = json
             }).catch(error => {
                 console.error('Error:', error)
+
+                this.result['error'] = error
             })
         }
     }
@@ -46,10 +54,13 @@ export default {
         </p>
         <p>
             Response:
-            <output>{{ result }}</output>
+            <output>
+                <span v-if="result.status === 200">{{ result.json }}</span>
+                <span v-else>{{ result }}</span>
+            </output>
         </p>
         <p>
-            <button type="button" @click="readById">readById</button>
+            <button type="button" class="btn btn-primary" @click="readById">readById</button>
         </p>
     </form>
 </template>
