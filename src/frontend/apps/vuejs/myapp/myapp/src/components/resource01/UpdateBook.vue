@@ -26,23 +26,28 @@ export default {
             data['id'] = this.id
             data['title'] = this.title
 
-            fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.token,
-                },
-                body: JSON.stringify(data),
-            }).then(response => {
-                console.log('Success:', response)
+            if (import.meta.env.VITE_MOCK_MODE) {
+                this.result['status'] = 204
+                this.result['statusText'] = 'dummy response.statusText'
+            } else {
+                fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + this.token,
+                    },
+                    body: JSON.stringify(data),
+                }).then(response => {
+                    console.log('Success:', response)
 
-                this.result['status'] = response.status
-                this.result['statusText'] = response.statusText
-            }).catch(error => {
-                console.error('Error:', error)
+                    this.result['status'] = response.status
+                    this.result['statusText'] = response.statusText
+                }).catch(error => {
+                    console.error('Error:', error)
 
-                this.result['error'] = error
-            })
+                    this.result['error'] = error
+                })
+            }
         }
     }
 }

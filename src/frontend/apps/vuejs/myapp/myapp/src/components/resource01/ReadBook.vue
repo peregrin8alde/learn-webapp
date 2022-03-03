@@ -20,25 +20,35 @@ export default {
 
             const url = this.baseUrl + '/' + this.id
 
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + this.token,
+            if (import.meta.env.VITE_MOCK_MODE) {
+                this.result['status'] = 200
+                this.result['statusText'] = 'dummy response.statusText'
+
+                this.result['json'] = {
+                    id: this.id,
+                    title: 'dummy title'
                 }
-            }).then(response => {
-                console.log('Success:', response)
+            } else {
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + this.token,
+                    }
+                }).then(response => {
+                    console.log('Success:', response)
 
-                this.result['status'] = response.status
-                this.result['statusText'] = response.statusText
+                    this.result['status'] = response.status
+                    this.result['statusText'] = response.statusText
 
-                return response.json()
-            }).then(json => {
-                this.result['json'] = json
-            }).catch(error => {
-                console.error('Error:', error)
+                    return response.json()
+                }).then(json => {
+                    this.result['json'] = json
+                }).catch(error => {
+                    console.error('Error:', error)
 
-                this.result['error'] = error
-            })
+                    this.result['error'] = error
+                })
+            }
         }
     }
 }
