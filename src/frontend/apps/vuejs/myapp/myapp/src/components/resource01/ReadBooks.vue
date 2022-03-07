@@ -64,7 +64,22 @@ export default {
             Response:
             <output>
                 <span v-if="result.status === 200">
-                    <div v-for="item in result.json">{{ item }}</div>
+                    <table class="table table-bordered">
+                        <thead class="table-primary">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">id</th>
+                                <th scope="col">title</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in result.json">
+                                <th scope="col">{{ index + 1 }}</th>
+                                <td scope="col">{{ item.id }}</td>
+                                <td scope="col">{{ item.title }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </span>
                 <span v-else>{{ result }}</span>
             </output>
