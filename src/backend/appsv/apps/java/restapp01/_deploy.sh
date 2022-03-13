@@ -3,7 +3,7 @@
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)
 PARENT_DIR=$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)
 
-BASE_DIR=${SCRIPT_DIR}/../../../../..
+BASE_DIR=${SCRIPT_DIR}/../../../../../..
 TARGET_DIR=${BASE_DIR}/deploy/backend/appsv/sv/webapps
 
 echo $(cd "${TARGET_DIR}" && pwd)
