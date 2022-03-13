@@ -10,3 +10,7 @@ Java 以外は Web サーバーやアプリそのものや開発用フレーム�
 * JavaScript
 ** Node.js
 *** Node.js 自体は JavaScript 実行環境であり、 AP サーバーとしての機能を持ったスクリプトを実行することになる。
+* python
+** https://wsgi.readthedocs.io/en/latest/[WSGI(Web Server Gateway Interface)] や 
+https://asgi.readthedocs.io/en/latest/[ASGI (Asynchronous Server Gateway Interface)] といった仕様を
+サポートしたアプリケーションサーバーを利用し、その上で動くアプリケーションを開発する。

@@ -1,0 +1,32 @@
+= Python による アプリケーションサーバ開発
+
+参考 : 
+
+* https://wsgi.readthedocs.io/en/latest/frameworks.html[Frameworks that run on WSGI]
+* https://wsgi.readthedocs.io/en/latest/servers.html[Servers which support WSGI]
+* https://asgi.readthedocs.io/en/latest/implementations.html#implementations[ASGI の実装]
+* https://docs.djangoproject.com/en/4.0/howto/deployment/wsgi/[How to deploy with WSGI]
+* https://docs.djangoproject.com/en/4.0/howto/deployment/asgi/[How to deploy with ASGI]
+
+== アプリケーションサーバ
+
+.アプリケーションサーバー
+* WSGI
+** Gunicorn
+** uWSGI
+** mod_wsgi
+*** Apache HTTP Server のモジュール
+** werkzeug.serving
+* ASGI
+** Daphne
+** Hypercorn
+** Uvicorn
+
+== アプリケーションサーバ開発フレームワーク
+
+* https://www.djangoproject.com/[Django]
+** WSGI / ASGI
+* https://palletsprojects.com/p/flask/[Flask]
+** WSGI (Flask on Werkzeug on WSGI)
+* https://fastapi.tiangolo.com/ja/[FastAPI]
+** ASGI (FastAPI on Starlette on Uvicorn)
