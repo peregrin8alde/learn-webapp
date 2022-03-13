@@ -1,0 +1,38 @@
+= Laravel
+
+公式サイト : https://laravel.com/[Laravel]
+
+基本的に、 https://laravel.com/docs/9.x/sail[Laravel Sail] という Docker compose 操作用の
+コマンドラインツールを使って操作することになる。
+
+
+== install
+
+参考 : https://laravel.com/docs/9.x/installation#getting-started-on-linux[Getting Started On Linux]
+
+* Docker イメージを使って構築している。
+* Docker のバージョンが古い（再現した環境だと `Docker version 19.03.4, build 9013bf583a` ）と、以下のエラーが発生する。
++
+[source,shell]
+----
+gpgv, gpgv2 or gpgv1 required for verification, but neither seems installed
+----
++
+`Docker version 20.10.13, build a224086` で正常動作することを確認。
+
+.サンプルアプリの構築
+[source,shell]
+----
+curl -s https://laravel.build/example-app | bash
+----
+
+.サンプルアプリの実行
+[source,shell]
+----
+cd example-app
+ 
+./vendor/bin/sail up
+----
+
+http://localhost
+
