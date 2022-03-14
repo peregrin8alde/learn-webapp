@@ -1,0 +1,65 @@
+= Django
+
+公式サイト : https://www.djangoproject.com/[The web framework for perfectionists with deadlines | Django]
+
+== install
+
+参考 : 
+
+* https://docs.djangoproject.com/en/4.0/intro/install/[Quick install guide]
+* https://docs.djangoproject.com/en/4.0/topics/install/#installing-official-release[Installing an official release with pip]
+
+ここでは、 https://hub.docker.com/_/python[Docker イメージ] を利用する。
+
+. 検証用ソースの準備
++
+.verify.py
+[source,python]
+----
+import django
+print(django.get_version())
+----
+. requirements.txt の準備
++
+.requirements.txt
+[source]
+----
+Django
+----
+. Dockerfile の準備
+.Dockerfile
+[source]
+----
+FROM python:3
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD [ "python", "./verify.py" ]
+----
+. Docker イメージの作成
++
+[source,shell]
+----
+docker build -t django_base .
+----
+. 検証実行
++
+[source,shell]
+----
+docker run -it --rm django_base
+----
++
+.結果
+[%collapsible]
+====
+[source,shell]
+----
+4.0.3
+----
+====
+
