@@ -4,8 +4,7 @@
 
 == install
 
-参考 : 
-
+.参考
 * https://docs.djangoproject.com/en/4.0/intro/install/[Quick install guide]
 * https://docs.djangoproject.com/en/4.0/topics/install/#installing-official-release[Installing an official release with pip]
 
@@ -63,3 +62,128 @@ docker run -it --rm django_base
 ----
 ====
 
+== Get Started
+
+.参考
+* https://docs.djangoproject.com/en/4.0/intro/tutorial01/[Writing your first Django app, part 1]
+
+. Creating a project
++
+プロジェクトを作成したいディレクトリ上で以下を実行する。
++
+[source,shell]
+----
+django-admin startproject mysite
+----
++
+以下の構成のディレクトリが作成される。
++
+[source]
+----
+mysite/
+    manage.py
+    mysite/
+        __init__.py
+        settings.py
+        urls.py
+        asgi.py
+        wsgi.py
+----
+. The development server
++
+`mysite` ディレクトリ上で以下を実行し、サーバーを起動する。
++
+[source,shell]
+----
+python manage.py runserver
+----
++
+外部から接続可能にする場合は、以下のようにする。
++
+[source,shell]
+----
+python manage.py runserver 0:8000
+----
++
+接続は http://localhost:8000
+
+接続ができたら、一旦停止してアプリの作成を行う。
+
+. Creating the Polls app
++
+以下を実行し、投票（ polls ）アプリを作成する。
++
+[source,shell]
+----
+python manage.py startapp polls
+----
++
+以下の構成のディレクトリが作成される。
++
+[source]
+----
+polls/
+    __init__.py
+    admin.py
+    apps.py
+    migrations/
+        __init__.py
+    models.py
+    tests.py
+    views.py
+----
+. Write your first view
++
+`polls/views.py` を編集して見た目を決める。
++
+.polls/views.py
+[source,python]
+----
+from django.http import HttpResponse
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+----
+. `polls/urls.py` を作成してルーティングを決める。
++
+.polls/urls.py
+[source,python]
+----
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+----
+. `mysite/urls.py` を編集して polls へルーティングを行う。
++
+.mysite/urls.py
+[source,python]
+----
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('polls/', include('polls.urls')),
+    path('admin/', admin.site.urls),
+]
+----
+. サーバーを起動し、アプリに接続する。
++
+[source,shell]
+----
+python manage.py runserver 0:8000
+----
++
+接続は http://localhost:8000/polls
++
+.結果
+[%collapsible]
+====
+[source,html]
+----
+Hello, world. You're at the polls index.
+----
+====
