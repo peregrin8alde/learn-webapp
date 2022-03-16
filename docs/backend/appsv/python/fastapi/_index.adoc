@@ -1,0 +1,85 @@
+= FastAPI
+
+公式サイト : https://fastapi.tiangolo.com/ja/[FastAPI]
+
+== install
+
+.参考
+* https://fastapi.tiangolo.com/ja/#_3[インストール]
+* https://fastapi.tiangolo.com/ja/#_4[アプリケーション例]
+
+ここでは、 https://hub.docker.com/_/python[Docker イメージ] を利用する。
+
+. 検証用ソースの準備
++
+.main.py
+[source,python]
+----
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: str = None):
+    return {"item_id": item_id, "q": q}
+----
+. requirements.txt の準備
++
+.requirements.txt
+[source]
+----
+fastapi
+uvicorn[standard]
+----
+. Dockerfile の準備
+.Dockerfile
+[source]
+----
+FROM python:3
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD [ "uvicorn", "main:app", "--reload", "--host 0.0.0.0" ]
+----
+. Docker イメージの作成
++
+[source,shell]
+----
+docker build -t fastapi_base .
+----
+. 検証実行
++
+[source,shell]
+----
+docker run \
+  -it \
+  --rm \
+  -p 8000:8000 \
+  fastapi_base
+----
++
+http://localhost:8000/items/5?q=somequery で接続
++
+.結果
+[%collapsible]
+====
+[source,json]
+----
+{"item_id":5,"q":"somequery"}
+----
+====
++
+自動対話型の API ドキュメントには http://localhost:8000/docs で接続
++
+代替の API ドキュメントには http://localhost:8000/redoc で接続
