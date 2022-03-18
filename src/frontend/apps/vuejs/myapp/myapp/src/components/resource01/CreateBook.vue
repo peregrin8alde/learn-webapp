@@ -1,6 +1,4 @@
 <script>
-import { e } from "../../../dist/assets/vendor.8473d62d"
-
 // vite で作成されるスクリプトに合わせて行末の ; は省略
 export default {
     props: {
