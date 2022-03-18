@@ -16,11 +16,12 @@ public class CustomFileConfigSource implements ConfigSource {
     public CustomFileConfigSource(String configFile) {
         // https://docs.oracle.com/javase/tutorial/essential/environment/properties.html
         Properties defaultProps = new Properties();
+        properties = new HashMap<String, String>();
+        
         try (FileInputStream in = new FileInputStream(configFile)) {
             defaultProps.load(in);
             in.close();
 
-            properties = new HashMap<String, String>();
             for (String key : defaultProps.stringPropertyNames()) {
                 properties.put(key, defaultProps.getProperty(key));
             }
