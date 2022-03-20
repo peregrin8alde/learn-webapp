@@ -5,6 +5,8 @@
 
 == 最初のステップ
 
+* ソース
++
 .main.py
 [source,python]
 ----
@@ -17,4 +19,42 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 ----
-
+* サーバー起動
++
+[source,shell]
+----
+uvicorn main:app --reload
+----
+`main`:: main.py ファイル ( Python "module" )。
+`app`:: main.py 内部で作られるobject（ `app = FastAPI()` のように記述される）。
+`--reload`:: コードの変更時にサーバーを再起動させる。開発用。
+* 動作チェック
++
+http://127.0.0.1:8000
+* 対話的APIドキュメント
++
+http://127.0.0.1:8000/docs
+* 他のAPIドキュメント
++
+http://127.0.0.1:8000/redoc
+* OpenAPI および JSON スキーマ
++
+FastAPI は、API を定義するための https://github.com/OAI/OpenAPI-Specification[OpenAPI 標準規格] 
+を使用して、すべての API の「スキーマ」を生成
++
+http://127.0.0.1:8000/openapi.json
+* パスオペレーションデコレータ
+** `@app.get("/")`
+** `@app.post()`
+** `@app.put()`
+** `@app.delete()`
+** `@app.options()`
+** `@app.head()`
+** `@app.patch()`
+** `@app.trace()`
+* パスオペレーション関数
++
+「デコレータ」の直下にある関数 （ `async def root():` ）
+* コンテンツの返信
++
+dict 、list 、str 、int などの他、 Pydantic モデルを返すことも可能
